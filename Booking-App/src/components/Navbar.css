@@ -1,0 +1,304 @@
+/* ============================================================
+   Navbar.css — StayEase OYO-inspired Navbar
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap');
+
+/* ── Variables ─────────────────────────────────────────────── */
+:root {
+  --red:         #e60023;
+  --red-dark:    #c0001d;
+  --red-light:   #fff0f2;
+  --white:       #ffffff;
+  --text:        #1a1a1a;
+  --text-muted:  #666666;
+  --border:      #f0f0f0;
+  --shadow:      0 2px 16px rgba(0,0,0,0.10);
+  --transition:  0.2s ease;
+}
+
+/* ── Base ───────────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Navbar ─────────────────────────────────────────────────── */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: var(--white);
+  border-bottom: 2.5px solid var(--red);
+  box-shadow: var(--shadow);
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── Inner ──────────────────────────────────────────────────── */
+.navbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 62px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+/* ── Hamburger ──────────────────────────────────────────────── */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: transform var(--transition), opacity var(--transition);
+  transform-origin: center;
+}
+
+.hamburger--open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger--open span:nth-child(2) { opacity: 0; }
+.hamburger--open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ── Logo ───────────────────────────────────────────────────── */
+.logo {
+  font-family: 'Nunito', sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--red);
+  text-decoration: none;
+  letter-spacing: -1px;
+  line-height: 1;
+  transition: opacity var(--transition);
+  flex-shrink: 0;
+}
+
+.logo:hover {
+  opacity: 0.85;
+}
+
+/* ── Right Side ─────────────────────────────────────────────── */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Desktop Nav Links ──────────────────────────────────────── */
+.nav-links {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-link {
+  display: inline-block;
+  padding: 7px 16px;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: color var(--transition), background var(--transition);
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  color: var(--red);
+  background: var(--red-light);
+}
+
+/* ── User Section ───────────────────────────────────────────── */
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 8px;
+}
+
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--red-light);
+  border: 1.5px solid rgba(230, 0, 35, 0.15);
+  border-radius: 24px;
+  padding: 4px 14px 4px 5px;
+}
+
+.user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  font-family: 'Nunito', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Logout Button ──────────────────────────────────────────── */
+.logout-btn {
+  background: none;
+  border: 1.5px solid #ddd;
+  color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.logout-btn:hover {
+  color: var(--red);
+  border-color: var(--red);
+  background: var(--red-light);
+}
+
+/* ── Sign In Button ─────────────────────────────────────────── */
+.login-btn {
+  display: inline-block;
+  background: var(--red);
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 9px 24px;
+  border-radius: 6px;
+  letter-spacing: 0.2px;
+  transition: background var(--transition), transform var(--transition);
+  white-space: nowrap;
+}
+
+.login-btn:hover {
+  background: var(--red-dark);
+  transform: translateY(-1px);
+}
+
+.login-btn:active {
+  transform: translateY(0);
+}
+
+/* ── Mobile Drawer ──────────────────────────────────────────── */
+.nav-drawer {
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+}
+
+.drawer-links {
+  list-style: none;
+  padding: 8px 0 16px;
+  margin: 0;
+}
+
+.drawer-links li a,
+.drawer-logout {
+  display: block;
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  text-decoration: none;
+  transition: background var(--transition), color var(--transition);
+}
+
+.drawer-links li a:hover {
+  background: var(--red-light);
+  color: var(--red);
+}
+
+.drawer-logout {
+  cursor: pointer;
+  color: var(--red);
+  font-weight: 600;
+}
+
+.drawer-logout:hover {
+  background: var(--red-light);
+}
+
+/* ── Divider between drawer items ───────────────────────────── */
+.drawer-links li {
+  border-bottom: 1px solid var(--border);
+}
+
+.drawer-links li:last-child {
+  border-bottom: none;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hamburger {
+    display: flex;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .nav-user {
+    gap: 6px;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .logout-btn {
+    display: none;
+  }
+
+  .navbar__inner {
+    padding: 0 16px;
+  }
+
+  .logo {
+    font-size: 24px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 480px) {
+  .login-btn {
+    padding: 7px 16px;
+    font-size: 13px;
+  }
+}

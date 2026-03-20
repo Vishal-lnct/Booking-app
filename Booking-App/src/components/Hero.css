@@ -1,0 +1,256 @@
+/* ============================================================
+   Hero.css — StayEase OYO-style Hero Section
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap');
+
+/* ── Hero Wrapper ───────────────────────────────────────────── */
+.hero {
+  position: relative;
+  height: 88vh;
+  min-height: 520px;
+  background: url("https://images.unsplash.com/photo-1566073771259-6a8506099945") center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ── Overlay ────────────────────────────────────────────────── */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.18) 0%,
+    rgba(0, 0, 0, 0.52) 60%,
+    rgba(0, 0, 0, 0.72) 100%
+  );
+  z-index: 1;
+}
+
+/* ── Content ────────────────────────────────────────────────── */
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 0 20px;
+  animation: heroFadeUp 0.7s ease both;
+}
+
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Badge ──────────────────────────────────────────────────── */
+.hero-badge {
+  display: inline-block;
+  background: rgba(230, 0, 35, 0.92);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 6px 18px;
+  border-radius: 999px;
+  margin-bottom: 20px;
+}
+
+/* ── Heading ────────────────────────────────────────────────── */
+.hero-title {
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(36px, 6vw, 68px);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.08;
+  letter-spacing: -1.5px;
+  margin: 0 0 16px;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.3);
+}
+
+.hero-title span {
+  color: #ff4d6d;
+}
+
+/* ── Subtitle ───────────────────────────────────────────────── */
+.hero-subtitle {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(14px, 2vw, 18px);
+  color: rgba(255,255,255,0.82);
+  margin: 0 auto 36px;
+  max-width: 480px;
+  line-height: 1.6;
+}
+
+/* ── Search Bar ─────────────────────────────────────────────── */
+.hero-search {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  max-width: 640px;
+  margin: 0 auto 28px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+}
+
+.hero-search input,
+.hero-search input[type="date"] {
+  border: none;
+  outline: none;
+  padding: 16px 18px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: #1a1a1a;
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+}
+
+.hero-search input::placeholder {
+  color: #aaa;
+}
+
+.hero-search-divider {
+  width: 1px;
+  height: 28px;
+  background: #e8e8e8;
+  flex-shrink: 0;
+}
+
+.hero-search-btn {
+  background: #e60023;
+  color: #fff;
+  border: none;
+  padding: 16px 28px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.hero-search-btn:hover {
+  background: #c0001d;
+}
+
+/* ── Trust Badges ───────────────────────────────────────────── */
+.hero-trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.hero-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255,255,255,0.80);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.hero-trust-item span:first-child {
+  font-size: 16px;
+}
+
+/* ── Stats Strip ────────────────────────────────────────────── */
+.hero-stats {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255,255,255,0.15);
+  display: flex;
+  justify-content: center;
+  gap: 0;
+}
+
+.hero-stat {
+  flex: 1;
+  max-width: 200px;
+  text-align: center;
+  padding: 18px 16px;
+  border-right: 1px solid rgba(255,255,255,0.12);
+}
+
+.hero-stat:last-child {
+  border-right: none;
+}
+
+.hero-stat__number {
+  font-family: 'Nunito', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+}
+
+.hero-stat__label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  color: rgba(255,255,255,0.65);
+  margin-top: 3px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hero {
+    height: 100svh;
+    align-items: flex-start;
+    padding-top: 80px;
+  }
+
+  .hero-search {
+    flex-direction: column;
+    border-radius: 12px;
+    align-items: stretch;
+  }
+
+  .hero-search input,
+  .hero-search input[type="date"] {
+    border-bottom: 1px solid #f0f0f0;
+    width: 100%;
+  }
+
+  .hero-search-divider {
+    display: none;
+  }
+
+  .hero-search-btn {
+    padding: 15px;
+    text-align: center;
+  }
+
+  .hero-stats {
+    gap: 0;
+  }
+
+  .hero-stat__number {
+    font-size: 18px;
+  }
+
+  .hero-trust {
+    gap: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-stats {
+    display: none;
+  }
+}

@@ -1,0 +1,495 @@
+/* ============================================================
+   BookingComponent.css — StayEase OYO-style Booking Calendar
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap');
+
+:root {
+  --red:        #e60023;
+  --red-dark:   #c0001d;
+  --red-light:  #fff0f2;
+  --text:       #1a1a1a;
+  --text-muted: #777;
+  --bg:         #f4f4f4;
+  --white:      #ffffff;
+  --border:     #e8e8e8;
+  --radius:     14px;
+  --transition: 0.2s ease;
+}
+
+/* ── Wrap ───────────────────────────────────────────────────── */
+.bc-wrap {
+  background: var(--bg);
+  min-height: 100vh;
+  font-family: 'DM Sans', sans-serif;
+  padding-bottom: 80px;
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+.bc-header {
+  background: linear-gradient(135deg, #0f0f0f 0%, #2a0810 55%, #0f0f0f 100%);
+  padding: 44px 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bc-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 20% 60%, rgba(230,0,35,0.20) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.bc-badge {
+  display: inline-block;
+  background: rgba(230,0,35,0.22);
+  color: #ff6b81;
+  border: 1px solid rgba(230,0,35,0.38);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+
+.bc-title {
+  font-family: 'Nunito', sans-serif;
+  font-size: 36px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -1px;
+  margin: 0 0 8px;
+}
+
+.bc-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.52);
+  margin: 0;
+}
+
+/* ── Body ───────────────────────────────────────────────────── */
+.bc-body {
+  max-width: 560px;
+  margin: -24px auto 0;
+  padding: 0 24px;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Calendar Card ──────────────────────────────────────────── */
+.bc-calendar-card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+  border: 1px solid var(--border);
+}
+
+/* ── Date Summary ───────────────────────────────────────────── */
+.bc-date-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  background: #f8f8f8;
+  border-radius: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+}
+
+.bc-date-box {
+  flex: 1;
+  text-align: center;
+}
+
+.bc-date-box__label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.bc-date-box__val {
+  display: block;
+  font-family: 'Nunito', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: #ccc;
+  transition: color var(--transition);
+}
+
+.bc-date-box--active .bc-date-box__val {
+  color: var(--red);
+}
+
+.bc-date-arrow {
+  font-size: 18px;
+  color: var(--border);
+  flex-shrink: 0;
+}
+
+.bc-nights-pill {
+  background: var(--red);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Month Nav ──────────────────────────────────────────────── */
+.bc-cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.bc-cal-month {
+  font-family: 'Nunito', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.bc-nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #f5f5f5;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  font-size: 12px;
+  transition: all var(--transition);
+}
+
+.bc-nav-btn:hover {
+  background: var(--red);
+  color: #fff;
+  border-color: var(--red);
+}
+
+/* ── Weekdays ───────────────────────────────────────────────── */
+.bc-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 8px;
+}
+
+.bc-weekdays span {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 0;
+}
+
+/* ── Days Grid ──────────────────────────────────────────────── */
+.bc-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.bc-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text);
+  transition: all var(--transition);
+  position: relative;
+}
+
+.bc-day:hover:not(.bc-day--past):not(.bc-day--overflow) {
+  background: var(--red-light);
+  color: var(--red);
+}
+
+.bc-day--overflow {
+  color: #ccc;
+  cursor: default;
+}
+
+.bc-day--past {
+  color: #ddd;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.bc-day--start,
+.bc-day--end {
+  background: var(--red) !important;
+  color: #fff !important;
+  font-weight: 800;
+  border-radius: 8px;
+}
+
+.bc-day--range {
+  background: var(--red-light);
+  color: var(--red);
+  border-radius: 0;
+}
+
+/* ── Error ──────────────────────────────────────────────────── */
+.bc-error {
+  color: var(--red);
+  background: var(--red-light);
+  border: 1px solid rgba(230,0,35,0.2);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 14px;
+  text-align: center;
+}
+
+/* ── Search Button ──────────────────────────────────────────── */
+.bc-search-btn {
+  width: 100%;
+  margin-top: 20px;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition),
+              box-shadow var(--transition);
+  box-shadow: 0 4px 16px rgba(230,0,35,0.30);
+  letter-spacing: 0.3px;
+}
+
+.bc-search-btn:hover:not(:disabled) {
+  background: var(--red-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(230,0,35,0.40);
+}
+
+.bc-search-btn:disabled {
+  background: #e0e0e0;
+  color: #aaa;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ── Results ────────────────────────────────────────────────── */
+.bc-results {
+  max-width: 1200px;
+  margin: 40px auto 0;
+  padding: 0 24px;
+}
+
+.bc-results__header {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.bc-results__title {
+  font-family: 'Nunito', sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--text);
+  margin: 0;
+}
+
+.bc-results__sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  background: #f0f0f0;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+/* ── Rooms Grid ─────────────────────────────────────────────── */
+.bc-rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 22px;
+}
+
+/* ── Empty ──────────────────────────────────────────────────── */
+.bc-empty {
+  text-align: center;
+  padding: 60px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.bc-empty span { font-size: 48px; }
+
+.bc-empty p {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.bc-empty-btn {
+  background: var(--red);
+  color: #fff;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 11px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background var(--transition);
+  box-shadow: 0 4px 14px rgba(230,0,35,0.28);
+}
+
+.bc-empty-btn:hover { background: var(--red-dark); }
+
+/* ── Success Toast ──────────────────────────────────────────── */
+.bc-success {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #16a34a;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 14px 28px;
+  border-radius: 999px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+  z-index: 9999;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ── RoomDetails.css additions ──────────────────────────────── */
+.slider {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.slider__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s ease;
+}
+
+.slider__btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.85);
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: all var(--transition);
+}
+
+.slider__btn:hover { background: #fff; transform: translateY(-50%) scale(1.1); }
+.slider__btn--left  { left: 8px; }
+.slider__btn--right { right: 8px; }
+
+.slider__dots {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 5px;
+  z-index: 3;
+}
+
+.slider__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.slider__dot--active {
+  background: #fff;
+  width: 18px;
+  border-radius: 3px;
+}
+
+.slider__count {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  z-index: 3;
+}
+
+/* room-card__btn--booked */
+.room-card__btn--booked {
+  background: #16a34a !important;
+  box-shadow: 0 4px 14px rgba(22,163,74,0.30) !important;
+}
+
+/* room-card__nights */
+.room-card__nights {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: #f7f7f7;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.room-card__nights strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .bc-header { padding: 32px 20px; }
+  .bc-body   { padding: 0 16px; }
+  .bc-title  { font-size: 26px; }
+  .bc-calendar-card { padding: 16px; }
+  .bc-results { padding: 0 16px; }
+  .bc-rooms-grid { grid-template-columns: 1fr; }
+}

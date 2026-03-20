@@ -1,0 +1,18 @@
+.search-bar {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+}
+
+.search-bar input, button {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.search-bar button {
+  background-color: #ff385c;
+  color: white;
+  border: none;
+}
