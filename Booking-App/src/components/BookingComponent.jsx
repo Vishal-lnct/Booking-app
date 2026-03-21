@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import RoomCard from "./RoomDetails/RoomCard";
 import { getRooms } from "../api/bookingService";
+import { UserContext } from "./UserContext";
 import "./BookingComponent.css";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-const BookingComponent = ({ currentUser }) => {
+const BookingComponent = () => {
+  const { user, token } = useContext(UserContext); // ✅ from context, not prop
+
   const [selectedDates, setSelectedDates] = useState({ startDate: null, endDate: null });
   const [currentDate,   setCurrentDate]   = useState(new Date());
   const [filteredRooms, setFilteredRooms] = useState([]);
@@ -14,12 +17,28 @@ const BookingComponent = ({ currentUser }) => {
   const [error,         setError]         = useState("");
   const [success,       setSuccess]       = useState("");
   const [roomData,      setRoomData]      = useState([]);
+  const [occupiedDates, setOccupiedDates] = useState([]); // ✅ real occupied dates from API
   const [loading,       setLoading]       = useState(false);
 
+  // ✅ Fetch rooms
   useEffect(() => {
     getRooms()
-      .then(data  => setRoomData(data))
-      .catch(err  => console.log("Error fetching rooms:", err));
+      .then(data => setRoomData(data))
+      .catch(err => console.error("Error fetching rooms:", err));
+  }, []);
+
+  // ✅ Fetch ALL occupied dates from backend (to block booked dates)
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/api/occupied-dates/", {
+      headers: {
+        "Content-Type": "application/json",
+        // no auth needed if this is a public endpoint
+        // if protected: add → "Authorization": `Token ${token}`
+      },
+    })
+      .then(res => res.json())
+      .then(data => setOccupiedDates(data))
+      .catch(err => console.error("Error fetching occupied dates:", err));
   }, []);
 
   const handleDateClick = (day, monthOffset = 0) => {
@@ -28,8 +47,8 @@ const BookingComponent = ({ currentUser }) => {
       currentDate.getMonth() + monthOffset,
       day
     );
-    const today = new Date(); today.setHours(0,0,0,0);
-    if (clicked < today) return; // block past dates
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (clicked < today) return;
 
     if (!selectedDates.startDate || selectedDates.endDate) {
       setSelectedDates({ startDate: clicked, endDate: null });
@@ -70,7 +89,7 @@ const BookingComponent = ({ currentUser }) => {
 
   const getDateStatus = (day, monthOffset) => {
     const date  = new Date(currentDate.getFullYear(), currentDate.getMonth() + monthOffset, day);
-    const today = new Date(); today.setHours(0,0,0,0);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
     const { startDate, endDate } = selectedDates;
 
     if (date < today) return "past";
@@ -78,6 +97,25 @@ const BookingComponent = ({ currentUser }) => {
     if (endDate   && date.getTime() === endDate.getTime())   return "end";
     if (startDate && endDate && date > startDate && date < endDate) return "range";
     return "";
+  };
+
+  // ✅ Check if a specific date is occupied for a specific room
+  const isDateOccupied = (roomId, date) => {
+    const dateStr = date.toISOString().split("T")[0];
+    return occupiedDates.some(
+      occ => String(occ.room) === String(roomId) && occ.date === dateStr
+    );
+  };
+
+  // ✅ Generate all dates between start and end
+  const getDateRange = (start, end) => {
+    const dates = [];
+    const current = new Date(start);
+    while (current <= end) {
+      dates.push(new Date(current));
+      current.setDate(current.getDate() + 1);
+    }
+    return dates;
   };
 
   const nights = selectedDates.startDate && selectedDates.endDate
@@ -88,20 +126,26 @@ const BookingComponent = ({ currentUser }) => {
 
   const handleFilterRooms = () => {
     if (!selectedDates.startDate) {
-      setError("Please select check-in date.");
+      setError("Please select a check-in date.");
       return;
     }
+    if (!selectedDates.endDate) {
+      setError("Please select a check-out date.");
+      return;
+    }
+    if (selectedDates.startDate.getTime() === selectedDates.endDate.getTime()) {
+      setError("Check-out must be after check-in.");
+      return;
+    }
+
     setLoading(true);
     const start = selectedDates.startDate;
-    const end   = selectedDates.endDate || selectedDates.startDate;
+    const end   = selectedDates.endDate;
+    const range = getDateRange(start, end);
 
-    const isInRange = occ => {
-      const d = new Date(occ.date); d.setHours(0,0,0,0);
-      return d >= start && d <= end;
-    };
-
+    // ✅ Filter rooms by checking occupied dates from API
     const available = roomData.filter(room =>
-      room.occupiedDates.every(occ => !isInRange(occ))
+      range.every(date => !isDateOccupied(room.id, date))
     );
 
     setTimeout(() => {
@@ -128,6 +172,13 @@ const BookingComponent = ({ currentUser }) => {
           <h2 className="bc-title">Pick Your Dates</h2>
           <p className="bc-sub">Select check-in & check-out to see available rooms</p>
         </div>
+
+        {/* ✅ Show logged-in user greeting */}
+        {user && (
+          <div className="bc-header__right" style={{ fontSize: "14px", color: "#666" }}>
+            👋 Hi, {user.username}
+          </div>
+        )}
       </div>
 
       <div className="bc-body">
@@ -135,7 +186,6 @@ const BookingComponent = ({ currentUser }) => {
         {/* Calendar Card */}
         <div className="bc-calendar-card">
 
-          {/* Selected dates summary */}
           <div className="bc-date-summary">
             <div className={`bc-date-box ${selectedDates.startDate ? "bc-date-box--active" : ""}`}>
               <span className="bc-date-box__label">CHECK-IN</span>
@@ -151,7 +201,6 @@ const BookingComponent = ({ currentUser }) => {
             )}
           </div>
 
-          {/* Month nav */}
           <div className="bc-cal-nav">
             <button className="bc-nav-btn" onClick={() => handleMonthChange(-1)}>
               <FaChevronLeft />
@@ -164,12 +213,10 @@ const BookingComponent = ({ currentUser }) => {
             </button>
           </div>
 
-          {/* Weekday headers */}
           <div className="bc-weekdays">
             {WEEKDAYS.map(d => <span key={d}>{d}</span>)}
           </div>
 
-          {/* Days grid */}
           <div className="bc-days">
             {days.map(({ day, monthOffset }, i) => {
               const status = getDateStatus(day, monthOffset);
@@ -177,11 +224,11 @@ const BookingComponent = ({ currentUser }) => {
                 <div
                   key={i}
                   className={`bc-day
-                    ${monthOffset !== 0 ? "bc-day--overflow" : ""}
-                    ${status === "past"  ? "bc-day--past"  : ""}
-                    ${status === "start" ? "bc-day--start" : ""}
-                    ${status === "end"   ? "bc-day--end"   : ""}
-                    ${status === "range" ? "bc-day--range" : ""}
+                    ${monthOffset !== 0  ? "bc-day--overflow" : ""}
+                    ${status === "past"  ? "bc-day--past"     : ""}
+                    ${status === "start" ? "bc-day--start"    : ""}
+                    ${status === "end"   ? "bc-day--end"      : ""}
+                    ${status === "range" ? "bc-day--range"    : ""}
                   `}
                   onClick={() => handleDateClick(day, monthOffset)}
                 >
@@ -191,13 +238,12 @@ const BookingComponent = ({ currentUser }) => {
             })}
           </div>
 
-          {/* Search button */}
           {error && <p className="bc-error">{error}</p>}
 
           <button
             className="bc-search-btn"
             onClick={handleFilterRooms}
-            disabled={!selectedDates.startDate || loading}
+            disabled={!selectedDates.startDate || !selectedDates.endDate || loading}
           >
             {loading ? "Searching..." : "🔍 Search Available Rooms"}
           </button>
@@ -227,11 +273,13 @@ const BookingComponent = ({ currentUser }) => {
                   key={room.id}
                   room={room}
                   selectedDateRange={selectedDates}
+                  currentUser={user}   // ✅ pass user from context
+                  token={token}        // ✅ pass token from context
                   onBookingSuccess={() => {
                     setSelectedDates({ startDate: null, endDate: null });
                     setFilteredRooms([]);
                     setIsFiltered(false);
-                    setSuccess("🎉 Booking Successful!");
+                    setSuccess("🎉 Booking Confirmed!");
                     setTimeout(() => setSuccess(""), 4000);
                   }}
                 />
@@ -241,8 +289,13 @@ const BookingComponent = ({ currentUser }) => {
             <div className="bc-empty">
               <span>😔</span>
               <p>No rooms available for the selected dates.</p>
-              <button className="bc-empty-btn"
-                onClick={() => { setIsFiltered(false); setSelectedDates({ startDate: null, endDate: null }); }}>
+              <button
+                className="bc-empty-btn"
+                onClick={() => {
+                  setIsFiltered(false);
+                  setSelectedDates({ startDate: null, endDate: null });
+                }}
+              >
                 Try Different Dates
               </button>
             </div>
@@ -251,9 +304,7 @@ const BookingComponent = ({ currentUser }) => {
       )}
 
       {success && (
-        <div className="bc-success">
-          {success}
-        </div>
+        <div className="bc-success">{success}</div>
       )}
     </div>
   );

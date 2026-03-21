@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { loginUser, registerUser } from "../api/bookingService";
 
 const AuthForm = () => {
-  const { user, setUser } = useContext(UserContext);
+  const { user, login } = useContext(UserContext); // ✅ login instead of setUser
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({ email: "", password: "", name: "" });
@@ -31,9 +31,9 @@ const AuthForm = () => {
         username: formData.email,
         password: formData.password,
       });
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setUser(data);
+      // ✅ No localStorage.setItem — context handles it
+      // ✅ login(userData, token) — flat, clean
+      login(data.user, data.token);
       navigate("/");
     } catch {
       setError("Invalid email or password. Please try again.");
@@ -51,9 +51,8 @@ const AuthForm = () => {
         password:  formData.password,
         full_name: formData.name,
       });
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setUser(data);
+      // ✅ No localStorage.setItem — context handles it
+      login(data.user, data.token);
       navigate("/");
     } catch {
       setError("Registration failed. Email may already be in use.");
@@ -88,7 +87,6 @@ const AuthForm = () => {
             Join thousands of travellers booking with confidence across India.
           </p>
 
-          {/* Feature list */}
           <div className="auth-features">
             <div className="auth-feature">
               <span className="auth-feature__icon">✅</span>
@@ -109,7 +107,6 @@ const AuthForm = () => {
           </div>
         </div>
 
-        {/* Background image overlay */}
         <div className="auth-left__bg" />
       </div>
 
@@ -117,7 +114,6 @@ const AuthForm = () => {
       <div className="auth-right">
         <div className="auth-form-wrap">
 
-          {/* Tabs */}
           <div className="auth-tabs">
             <button
               className={`auth-tab ${isLogin ? "auth-tab--active" : ""}`}
@@ -133,7 +129,6 @@ const AuthForm = () => {
             </button>
           </div>
 
-          {/* Title */}
           <h1 className="auth-title">
             {isLogin ? "Welcome back 👋" : "Join StayEase 🏨"}
           </h1>
@@ -143,7 +138,6 @@ const AuthForm = () => {
               : "Create your free account in seconds"}
           </p>
 
-          {/* Form */}
           <form className="auth-form" onSubmit={handleSubmit}>
 
             {!isLogin && (
@@ -210,14 +204,12 @@ const AuthForm = () => {
               </div>
             </div>
 
-            {/* Error */}
             {error && (
               <div className="auth-error">
                 ⚠️ {error}
               </div>
             )}
 
-            {/* Submit */}
             <button
               type="submit"
               className="auth-submit"
@@ -228,14 +220,12 @@ const AuthForm = () => {
                 : isLogin ? "Sign In →" : "Create Account →"}
             </button>
 
-            {/* Divider */}
             <div className="auth-divider">
               <span />
               <p>or continue with</p>
               <span />
             </div>
 
-            {/* Social (UI only) */}
             <div className="auth-socials">
               <button type="button" className="auth-social">
                 <img src="https://www.google.com/favicon.ico" alt="Google" width="16" />
@@ -248,7 +238,6 @@ const AuthForm = () => {
 
           </form>
 
-          {/* Switch */}
           <p className="auth-switch">
             {isLogin ? "Don't have an account?" : "Already have an account?"}
             <button className="auth-switch__btn" onClick={toggle}>

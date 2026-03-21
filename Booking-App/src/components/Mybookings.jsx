@@ -4,69 +4,81 @@ import { UserContext } from "./UserContext";
 import "./MyBookings.css";
 
 const MyBookings = () => {
-  const { user } = useContext(UserContext);
+  const { user, token } = useContext(UserContext);
   const navigate = useNavigate();
-  const [bookings,  setBookings]  = useState([]);
-  const [loading,   setLoading]   = useState(true);
+  const [bookings,   setBookings]   = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState("");
   const [cancelling, setCancelling] = useState(null);
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab,  setActiveTab]  = useState("all");
 
   useEffect(() => {
-    if (!user) return navigate("/auth");
+    if (!user || !token) return navigate("/auth");
 
-    fetch("http://127.0.0.1:8000/api/occupied-dates/", {
+    fetch("http://127.0.0.1:8000/api/bookings/", {
       headers: {
-        "Authorization": `Token ${user.token}`,
+        "Authorization": `Token ${token}`,
         "Content-Type": "application/json",
       },
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch bookings");
+        return res.json();
+      })
       .then(data => {
-        // Group by room
-        const grouped = {};
-        data.forEach(booking => {
-          const key = `${booking.room}-${booking.user}`;
-          if (!grouped[key]) {
-            grouped[key] = {
-              id:     booking.id,
-              roomId: booking.room,
-              dates:  [],
-            };
-          }
-          grouped[key].dates.push(booking.date);
+        const today = new Date().toISOString().split("T")[0];
+
+        const list = data.map(booking => {
+          const checkIn  = booking.check_in  || booking.checkIn;
+          const checkOut = booking.check_out || booking.checkOut;
+
+          const nights = Math.round(
+            (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)
+          );
+
+          const status = checkOut < today ? "completed" : "upcoming";
+
+          return {
+            id:         booking.id,
+            roomId:     booking.room || booking.room_id,
+            roomName:   booking.room_name || `Room #${booking.room || booking.room_id}`,
+            checkIn,
+            checkOut,
+            nights,
+            status,
+            totalPrice: booking.total_price || booking.totalPrice || null,
+          };
         });
 
-        // Sort dates and build booking list
-        const list = Object.values(grouped).map(b => {
-          const sorted    = b.dates.sort();
-          const checkIn   = sorted[0];
-          const checkOut  = sorted[sorted.length - 1];
-          const nights    = sorted.length;
-          const today     = new Date().toISOString().split("T")[0];
-          const status    = checkOut < today ? "completed" : "upcoming";
-          return { ...b, checkIn, checkOut, nights, status };
+        list.sort((a, b) => {
+          if (a.status === "upcoming" && b.status !== "upcoming") return -1;
+          if (a.status !== "upcoming" && b.status === "upcoming") return 1;
+          return new Date(a.checkIn) - new Date(b.checkIn);
         });
 
         setBookings(list);
         setLoading(false);
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
+        setError("Could not load bookings. Please try again.");
         setLoading(false);
       });
-  }, [user]);
+  }, [user, token]);
 
   const handleCancel = async (bookingId) => {
     if (!window.confirm("Cancel this booking?")) return;
     setCancelling(bookingId);
     try {
-      await fetch(`http://127.0.0.1:8000/api/occupied-dates/${bookingId}/`, {
+      const res = await fetch(`http://127.0.0.1:8000/api/bookings/${bookingId}/`, {
         method: "DELETE",
-        headers: { "Authorization": `Token ${user.token}` },
+        headers: { "Authorization": `Token ${token}` },
       });
+      if (!res.ok) throw new Error("Cancel failed");
       setBookings(prev => prev.filter(b => b.id !== bookingId));
     } catch (err) {
-      console.log(err);
+      console.error(err);
+      alert("Could not cancel booking. Please try again.");
     } finally {
       setCancelling(null);
     }
@@ -83,7 +95,6 @@ const MyBookings = () => {
   return (
     <div className="mb-page">
 
-      {/* ── Hero ── */}
       <div className="mb-hero">
         <div className="mb-hero__inner">
           <span className="mb-badge">📋 Your Trips</span>
@@ -92,7 +103,6 @@ const MyBookings = () => {
             Track and manage all your hotel reservations in one place.
           </p>
 
-          {/* Stats */}
           {!loading && (
             <div className="mb-stats">
               <div className="mb-stat">
@@ -118,10 +128,8 @@ const MyBookings = () => {
         </div>
       </div>
 
-      {/* ── Content ── */}
       <div className="mb-content">
 
-        {/* Tabs */}
         <div className="mb-tabs">
           {["all", "upcoming", "completed"].map(tab => (
             <button
@@ -129,9 +137,9 @@ const MyBookings = () => {
               className={`mb-tab ${activeTab === tab ? "mb-tab--active" : ""}`}
               onClick={() => setActiveTab(tab)}
             >
-              {tab === "all"       ? "All Bookings" :
-               tab === "upcoming"  ? "✈️ Upcoming"   :
-                                     "✅ Completed"}
+              {tab === "all"      ? "All Bookings" :
+               tab === "upcoming" ? "✈️ Upcoming"  :
+                                    "✅ Completed"}
               {tab !== "all" && (
                 <span className="mb-tab__count">
                   {bookings.filter(b => b.status === tab).length}
@@ -141,7 +149,15 @@ const MyBookings = () => {
           ))}
         </div>
 
-        {/* Loading Skeleton */}
+        {error && (
+          <div style={{
+            textAlign: "center", padding: "2rem",
+            color: "#e60023", fontSize: "14px"
+          }}>
+            ⚠️ {error}
+          </div>
+        )}
+
         {loading && (
           <div className="mb-list">
             {[...Array(3)].map((_, i) => (
@@ -157,8 +173,7 @@ const MyBookings = () => {
           </div>
         )}
 
-        {/* Booking Cards */}
-        {!loading && filtered.length > 0 && (
+        {!loading && !error && filtered.length > 0 && (
           <div className="mb-list">
             {filtered.map((booking, i) => (
               <div
@@ -166,15 +181,11 @@ const MyBookings = () => {
                 className="mb-card"
                 style={{ animationDelay: `${i * 0.07}s` }}
               >
-                {/* Left — icon */}
-                <div className="mb-card__icon">
-                  🏨
-                </div>
+                <div className="mb-card__icon">🏨</div>
 
-                {/* Center — info */}
                 <div className="mb-card__info">
                   <div className="mb-card__top">
-                    <h3 className="mb-card__name">Room #{booking.roomId}</h3>
+                    <h3 className="mb-card__name">{booking.roomName}</h3>
                     <span className={`mb-card__status mb-card__status--${booking.status}`}>
                       {booking.status === "upcoming" ? "✈️ Upcoming" : "✅ Completed"}
                     </span>
@@ -194,15 +205,18 @@ const MyBookings = () => {
 
                   <div className="mb-card__meta">
                     <span>🌙 {booking.nights} night{booking.nights > 1 ? "s" : ""}</span>
-                    <span>📅 Booked ID: #{booking.id}</span>
+                    {booking.totalPrice && (
+                      <span>💰 ₹{Number(booking.totalPrice).toLocaleString("en-IN")}</span>
+                    )}
+                    <span>🔖 Booking #{booking.id}</span>
                   </div>
                 </div>
 
-                {/* Right — actions */}
                 <div className="mb-card__actions">
+                  {/* ✅ FIXED — navigates to specific room page */}
                   <button
                     className="mb-card__view"
-                    onClick={() => navigate(`/rooms`)}
+                    onClick={() => navigate(`/rooms/${booking.roomId}`)}
                   >
                     View Room
                   </button>
@@ -221,8 +235,7 @@ const MyBookings = () => {
           </div>
         )}
 
-        {/* Empty State */}
-        {!loading && filtered.length === 0 && (
+        {!loading && !error && filtered.length === 0 && (
           <div className="mb-empty">
             <span className="mb-empty__icon">
               {activeTab === "upcoming"  ? "✈️" :

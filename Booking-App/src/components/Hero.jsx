@@ -3,55 +3,74 @@ import { useNavigate } from "react-router-dom";
 import "./Hero.css";
 
 const Hero = () => {
-  const [city, setCity] = useState("");
-  const [checkIn, setCheckIn] = useState("");
+  const [city,     setCity]     = useState("");
+  const [checkIn,  setCheckIn]  = useState("");
   const [checkOut, setCheckOut] = useState("");
   const navigate = useNavigate();
 
+  const today = new Date().toISOString().split("T")[0];
+
   function handleSearch(e) {
     e.preventDefault();
-    if (city.trim()) {
-      navigate(`/rooms?city=${city}&checkIn=${checkIn}&checkOut=${checkOut}`);
-    }
+    const params = new URLSearchParams();
+    if (city)     params.append("city",     city);
+    if (checkIn)  params.append("checkIn",  checkIn);
+    if (checkOut) params.append("checkOut", checkOut);
+    navigate(`/rooms?${params.toString()}`);
   }
 
   return (
     <section className="hero">
       <div className="hero-content">
-
-        {/* Badge */}
         <div className="hero-badge">🏨 India's Trusted Hotel Booking</div>
 
-        {/* Heading */}
         <h1 className="hero-title">
           Find Your <span>Perfect</span><br />Stay
         </h1>
 
-        {/* Subtitle */}
         <p className="hero-subtitle">
           Book hotels at the best prices — comfort, style & savings guaranteed.
         </p>
 
         {/* Search Bar */}
         <form className="hero-search" onSubmit={handleSearch}>
-          <input
-            type="text"
-            placeholder="🔍  Enter city (Goa, Delhi...)"
-            value={city}
-            onChange={e => setCity(e.target.value)}
-          />
-          <div className="hero-search-divider" />
-          <input
-            type="date"
-            value={checkIn}
-            onChange={e => setCheckIn(e.target.value)}
-          />
-          <div className="hero-search-divider" />
-          <input
-            type="date"
-            value={checkOut}
-            onChange={e => setCheckOut(e.target.value)}
-          />
+          <div className="hero-search__field">
+            <span className="hero-search__icon">📍</span>
+            <input
+              type="text"
+              placeholder="City (Goa, Delhi...)"
+              value={city}
+              onChange={e => setCity(e.target.value)}
+            />
+          </div>
+
+          <div className="hero-search__divider" />
+
+          <div className="hero-search__field">
+            <span className="hero-search__icon">📅</span>
+            <input
+              type="date"
+              value={checkIn}
+              min={today}
+              onChange={e => { setCheckIn(e.target.value); setCheckOut(""); }}
+              placeholder="Check-in"
+            />
+          </div>
+
+          <div className="hero-search__divider" />
+
+          <div className="hero-search__field">
+            <span className="hero-search__icon">📅</span>
+            <input
+              type="date"
+              value={checkOut}
+              min={checkIn || today}
+              disabled={!checkIn}
+              onChange={e => setCheckOut(e.target.value)}
+              placeholder="Check-out"
+            />
+          </div>
+
           <button type="submit" className="hero-search-btn">
             Search
           </button>
@@ -59,22 +78,10 @@ const Hero = () => {
 
         {/* Trust Badges */}
         <div className="hero-trust">
-          <div className="hero-trust-item">
-            <span>✅</span>
-            <span>Free Cancellation</span>
-          </div>
-          <div className="hero-trust-item">
-            <span>💳</span>
-            <span>Pay at Hotel</span>
-          </div>
-          <div className="hero-trust-item">
-            <span>🔒</span>
-            <span>Secure Booking</span>
-          </div>
-          <div className="hero-trust-item">
-            <span>📞</span>
-            <span>24/7 Support</span>
-          </div>
+          <div className="hero-trust-item"><span>✅</span><span>Free Cancellation</span></div>
+          <div className="hero-trust-item"><span>💳</span><span>Pay at Hotel</span></div>
+          <div className="hero-trust-item"><span>🔒</span><span>Secure Booking</span></div>
+          <div className="hero-trust-item"><span>📞</span><span>24/7 Support</span></div>
         </div>
       </div>
 

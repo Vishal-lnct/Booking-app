@@ -1,24 +1,15 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom"; // ✅ removed useNavigate — not needed anymore
 import RoomCard from "./RoomDetails/RoomCard";
 import "./AllRooms.css";
-
-const HERO_IMAGES = [
-  "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80",
-  "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=600&q=80",
-  "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=600&q=80",
-  "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80",
-];
 
 const ROOM_TYPES = ["Deluxe", "Standard", "Suite", "Premium"];
 const AMENITIES  = ["Free WiFi", "AC", "Parking", "Breakfast", "TV", "Pool"];
 
 function AllRooms() {
   const [filteredRooms, setFilteredRooms] = useState([]);
-  const [loading, setLoading]             = useState(true);
-  const [heroImg, setHeroImg]             = useState(0);
+  const [loading,       setLoading]       = useState(true);
 
-  // Filters
   const [maxPrice,          setMaxPrice]          = useState(10000);
   const [selectedTypes,     setSelectedTypes]     = useState([]);
   const [selectedAmenities, setSelectedAmenities] = useState([]);
@@ -32,26 +23,16 @@ function AllRooms() {
   const checkIn        = queryParams.get("checkIn");
   const checkOut       = queryParams.get("checkOut");
 
-  // Rotate hero image every 3s
-  useEffect(() => {
-    const t = setInterval(() =>
-      setHeroImg(p => (p + 1) % HERO_IMAGES.length), 3000);
-    return () => clearInterval(t);
-  }, []);
-
-  // ── Fetch from backend with all filter params ──────────────
   useEffect(() => {
     setLoading(true);
-
     const params = new URLSearchParams();
 
-    if (searchLocation)              params.append("city",       searchLocation);
-    if (maxPrice < 10000)            params.append("maxPrice",   maxPrice);
-    if (selectedOccupancy)           params.append("occupancy",  selectedOccupancy);
-    if (selectedRating)              params.append("minRating",  selectedRating);
-    if (selectedTypes.length === 1)  params.append("type",       selectedTypes[0].toLowerCase());
+    if (searchLocation)             params.append("city",      searchLocation);
+    if (maxPrice < 10000)           params.append("maxPrice",  maxPrice);
+    if (selectedOccupancy)          params.append("occupancy", selectedOccupancy);
+    if (selectedRating)             params.append("minRating", selectedRating);
+    if (selectedTypes.length === 1) params.append("type",      selectedTypes[0].toLowerCase());
 
-    // Amenities
     selectedAmenities.forEach(a => {
       if (a === "Free WiFi") params.append("wifi",      "true");
       if (a === "AC")        params.append("ac",        "true");
@@ -63,18 +44,15 @@ function AllRooms() {
     fetch(`http://127.0.0.1:8000/api/rooms/?${params.toString()}`)
       .then(res => res.json())
       .then(data => { setFilteredRooms(data); setLoading(false); })
-      .catch(err => { console.log(err); setLoading(false); });
+      .catch(err  => { console.log(err);      setLoading(false); });
 
   }, [searchLocation, maxPrice, selectedTypes, selectedOccupancy, selectedAmenities, selectedRating]);
 
   const toggleType    = t => setSelectedTypes(p =>
     p.includes(t) ? p.filter(x => x !== t) : [...p, t]);
-
   const toggleAmenity = a => setSelectedAmenities(p =>
     p.includes(a) ? p.filter(x => x !== a) : [...p, a]);
-
   const toggleRating  = r => setSelectedRating(p => p === r ? null : r);
-
   const clearFilters  = () => {
     setMaxPrice(10000);
     setSelectedTypes([]);
@@ -95,15 +73,17 @@ function AllRooms() {
 
       {/* ── HERO ── */}
       <div className="ar-hero">
-        <div className="ar-hero__left">
+        <div className="ar-hero__inner">
           <span className="ar-badge">🛏️ Browse &amp; Book</span>
           <h1 className="ar-title">
             {searchLocation ? `Rooms in ${searchLocation}` : "Available Rooms"}
           </h1>
           <p className="ar-sub">
             {searchLocation ? (
-              <><strong>"{searchLocation}"</strong>
-              {checkIn && checkOut && <> &middot; {checkIn} → {checkOut}</>}</>
+              <>
+                Results for <strong>"{searchLocation}"</strong>
+                {checkIn && checkOut && <> &middot; {checkIn} → {checkOut}</>}
+              </>
             ) : (
               "Handpicked stays at the best prices across India"
             )}
@@ -135,23 +115,7 @@ function AllRooms() {
             <span>✅ Free Cancellation</span>
             <span>💳 Pay at Hotel</span>
             <span>🔒 Secure Booking</span>
-          </div>
-        </div>
-
-        <div className="ar-hero__right">
-          <div className="ar-hero__img-frame">
-            {HERO_IMAGES.map((src, i) => (
-              <img key={i} src={src} alt="hotel"
-                className={`ar-hero__img ${i === heroImg ? "ar-hero__img--active" : ""}`} />
-            ))}
-            <div className="ar-hero__float">
-              <div className="ar-hero__float-icon">🏆</div>
-              <div>
-                <div className="ar-hero__float-title">Top Rated</div>
-                <div className="ar-hero__float-sub">4.8★ avg across hotels</div>
-              </div>
-            </div>
-            <div className="ar-hero__pill"><span>🔥</span> 200+ booked today</div>
+            <span>📞 24/7 Support</span>
           </div>
         </div>
       </div>
@@ -159,7 +123,6 @@ function AllRooms() {
       {/* ── BODY ── */}
       <div className="ar-body">
 
-        {/* Mobile toggle */}
         <button className="ar-filter-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
           🎛️ Filters
           {activeCount > 0 && <span className="ar-filter-dot">{activeCount}</span>}
@@ -174,7 +137,6 @@ function AllRooms() {
             )}
           </div>
 
-          {/* Price */}
           <div className="ar-fg">
             <h4 className="ar-fl">💰 Price per Night</h4>
             <div className="ar-price-row">
@@ -188,7 +150,6 @@ function AllRooms() {
             <div className="ar-ticks"><span>₹500</span><span>₹10,000</span></div>
           </div>
 
-          {/* Room Type */}
           <div className="ar-fg">
             <h4 className="ar-fl">🏨 Room Type</h4>
             <div className="ar-chips">
@@ -201,7 +162,6 @@ function AllRooms() {
             </div>
           </div>
 
-          {/* Occupancy */}
           <div className="ar-fg">
             <h4 className="ar-fl">👥 Min Guests</h4>
             <div className="ar-chips">
@@ -214,7 +174,6 @@ function AllRooms() {
             </div>
           </div>
 
-          {/* Amenities */}
           <div className="ar-fg">
             <h4 className="ar-fl">✨ Amenities</h4>
             <div className="ar-checks">
@@ -230,7 +189,6 @@ function AllRooms() {
             </div>
           </div>
 
-          {/* Rating — now wired up */}
           <div className="ar-fg">
             <h4 className="ar-fl">⭐ Min Rating</h4>
             <div className="ar-chips">
@@ -263,7 +221,6 @@ function AllRooms() {
             </div>
           )}
 
-          {/* Skeleton */}
           {loading && (
             <div className="ar-grid">
               {[...Array(6)].map((_, i) => (
@@ -279,21 +236,21 @@ function AllRooms() {
             </div>
           )}
 
-          {/* Grid */}
           {!loading && filteredRooms.length > 0 && (
             <div className="ar-grid">
               {filteredRooms.map((room, i) => (
-                <div key={room.id} className="ar-grid__item"
-                  style={{ animationDelay: `${i * 0.05}s` }}>
-                  <RoomCard room={room}
-                    selectedDateRange={{ checkIn, checkOut }}
-                    onBookingSuccess={() => console.log("Booked")} />
+                <div
+                  key={room.id}
+                  className="ar-grid__item"
+                  style={{ animationDelay: `${i * 0.05}s` }}
+                >
+                  {/* ✅ Only pass room — RoomCard handles navigation internally */}
+                  <RoomCard room={room} />
                 </div>
               ))}
             </div>
           )}
 
-          {/* Empty */}
           {!loading && filteredRooms.length === 0 && (
             <div className="ar-empty">
               <span>🏨</span>

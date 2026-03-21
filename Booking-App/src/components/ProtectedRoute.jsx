@@ -2,13 +2,12 @@ import { Navigate } from "react-router-dom";
 import { useContext } from "react";
 import { UserContext } from "./UserContext";
 
-const GuestRoute = ({ children }) => {
+const ProtectedRoute = ({ children }) => {
   const { user } = useContext(UserContext);
 
-  // UserContext already handles localStorage — no need to re-read it here
-  if (user) return <Navigate to="/" replace />;
+  if (!user) return <Navigate to="/auth" replace />;
 
   return children;
 };
 
-export default GuestRoute;
+export default ProtectedRoute;

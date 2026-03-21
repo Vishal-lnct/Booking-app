@@ -4,12 +4,14 @@ import "./index.css";
 import App from "./App.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import AllRooms    from "./components/AllRooms.jsx";
-import AuthForm    from "./components/AuthForm.jsx";
-import MyBookings  from "./components/MyBookings.jsx";  // ← SWAPPED
+import AllRooms       from "./components/AllRooms.jsx";
+import AuthForm       from "./components/AuthForm.jsx";
+import MyBookings     from "./components/MyBookings.jsx";
+import RoomDetails    from "./components/RoomDetails/RoomDetails.jsx";
 import { UserProvider } from "./components/UserContext.jsx";
-import GuestRoute  from "./components/GuestRoute.jsx";
-import Home        from "./pages/Home";
+import GuestRoute     from "./components/GuestRoute.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import Home           from "./pages/Home";
 
 const router = createBrowserRouter([
   {
@@ -25,6 +27,10 @@ const router = createBrowserRouter([
         element: <AllRooms />,
       },
       {
+        path: "/rooms/:id",       // ✅ Room detail page
+        element: <RoomDetails />,
+      },
+      {
         path: "/auth",
         element: (
           <GuestRoute>
@@ -34,7 +40,11 @@ const router = createBrowserRouter([
       },
       {
         path: "/my-bookings",
-        element: <MyBookings />,  // ← SWAPPED from OccupiedDatesDisplay
+        element: (
+          <ProtectedRoute>
+            <MyBookings />
+          </ProtectedRoute>
+        ),
       },
     ],
   },

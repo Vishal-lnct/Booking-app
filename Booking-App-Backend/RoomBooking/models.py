@@ -1,25 +1,24 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
-from cloudinary.models import CloudinaryField
 
 
 class Room(models.Model):
     ROOM_TYPES = [
-        ('suite', 'Suite'),
+        ('suite',    'Suite'),
         ('standard', 'Standard'),
-        ('deluxe', 'Deluxe'),
-        ('premium', 'Premium'),       # ← added
+        ('deluxe',   'Deluxe'),
+        ('premium',  'Premium'),
     ]
 
     CURRENCY_TYPES = [
         ('USD', 'USD'),
         ('EUR', 'EUR'),
-        ('INR', 'INR'),               # ← added INR
+        ('INR', 'INR'),
     ]
 
     name          = models.CharField(max_length=100, blank=True, default='')
-    city          = models.CharField(max_length=100, default='India')  # ← added
+    city          = models.CharField(max_length=100, default='India')
     type          = models.CharField(max_length=100, choices=ROOM_TYPES)
     pricePerNight = models.IntegerField(default=150)
     currency      = models.CharField(default="INR", max_length=10, choices=CURRENCY_TYPES)
@@ -27,9 +26,8 @@ class Room(models.Model):
     description   = models.TextField(max_length=1000)
     rating        = models.FloatField(default=4.0)
     totalReviews  = models.IntegerField(default=0)
-    isAvailable   = models.BooleanField(default=True)  # ← added
+    isAvailable   = models.BooleanField(default=True)
 
-    # Amenities                                         # ← all added
     hasWifi       = models.BooleanField(default=True)
     hasAC         = models.BooleanField(default=True)
     hasParking    = models.BooleanField(default=False)
@@ -55,8 +53,33 @@ class OccupiedDate(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='booked_dates')
     date = models.DateField()
 
+    class Meta:
+        # ✅ Prevent duplicate date entries for same room
+        unique_together = ('room', 'date')
+
     def __str__(self):
         return f"{self.date} - {self.room.name}"
+
+
+class Booking(models.Model):
+    STATUS_CHOICES = [
+        ('upcoming',   'Upcoming'),
+        ('completed',  'Completed'),
+        ('cancelled',  'Cancelled'),
+    ]
+
+    room       = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='bookings')
+    user       = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bookings')
+    check_in   = models.DateField()
+    check_out  = models.DateField()
+    status     = models.CharField(max_length=20, choices=STATUS_CHOICES, default='upcoming')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Booking #{self.id} — {self.user} — Room {self.room}"
 
 
 class User(AbstractUser):
