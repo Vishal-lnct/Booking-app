@@ -6,11 +6,12 @@ import "./MyBookings.css";
 const MyBookings = () => {
   const { user, token } = useContext(UserContext);
   const navigate = useNavigate();
-  const [bookings,   setBookings]   = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [error,      setError]      = useState("");
-  const [cancelling, setCancelling] = useState(null);
-  const [activeTab,  setActiveTab]  = useState("all");
+  const [bookings,    setBookings]    = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [error,       setError]       = useState("");
+  const [cancelling,  setCancelling]  = useState(null);
+  const [cancelError, setCancelError] = useState("");
+  const [activeTab,   setActiveTab]   = useState("all");
 
   useEffect(() => {
     if (!user || !token) return navigate("/auth");
@@ -31,13 +32,10 @@ const MyBookings = () => {
         const list = data.map(booking => {
           const checkIn  = booking.check_in  || booking.checkIn;
           const checkOut = booking.check_out || booking.checkOut;
-
-          const nights = Math.round(
+          const nights   = Math.round(
             (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)
           );
-
           const status = checkOut < today ? "completed" : "upcoming";
-
           return {
             id:         booking.id,
             roomId:     booking.room || booking.room_id,
@@ -67,18 +65,33 @@ const MyBookings = () => {
   }, [user, token]);
 
   const handleCancel = async (bookingId) => {
-    if (!window.confirm("Cancel this booking?")) return;
+    if (!window.confirm("Are you sure you want to cancel this booking?")) return;
+
     setCancelling(bookingId);
+    setCancelError("");
+
     try {
       const res = await fetch(`http://127.0.0.1:8000/api/bookings/${bookingId}/`, {
         method: "DELETE",
-        headers: { "Authorization": `Token ${token}` },
+        headers: {
+          "Authorization": `Token ${token}`,
+          "Content-Type": "application/json",
+        },
       });
-      if (!res.ok) throw new Error("Cancel failed");
-      setBookings(prev => prev.filter(b => b.id !== bookingId));
+
+      if (res.status === 200 || res.status === 204) {
+        setBookings(prev => prev.filter(b => b.id !== bookingId));
+        return;
+      }
+
+      const errData = await res.json().catch(() => ({}));
+      const message = errData?.detail || "Could not cancel booking.";
+      setCancelError(message);
+      alert(message);
+
     } catch (err) {
-      console.error(err);
-      alert("Could not cancel booking. Please try again.");
+      console.error("Cancel error:", err);
+      alert("Network error. Please check your connection and try again.");
     } finally {
       setCancelling(null);
     }
@@ -95,6 +108,7 @@ const MyBookings = () => {
   return (
     <div className="mb-page">
 
+      {/* ── HERO ── */}
       <div className="mb-hero">
         <div className="mb-hero__inner">
           <span className="mb-badge">📋 Your Trips</span>
@@ -128,8 +142,10 @@ const MyBookings = () => {
         </div>
       </div>
 
+      {/* ── CONTENT ── */}
       <div className="mb-content">
 
+        {/* Tabs */}
         <div className="mb-tabs">
           {["all", "upcoming", "completed"].map(tab => (
             <button
@@ -149,6 +165,19 @@ const MyBookings = () => {
           ))}
         </div>
 
+        {/* Cancel error banner */}
+        {cancelError && (
+          <div style={{
+            background: "#fff0f2",
+            border: "1px solid rgba(230,0,35,0.2)",
+            borderRadius: "8px", padding: "12px 16px",
+            margin: "0 0 1rem", color: "#e60023", fontSize: "14px"
+          }}>
+            ⚠️ {cancelError}
+          </div>
+        )}
+
+        {/* Fetch error */}
         {error && (
           <div style={{
             textAlign: "center", padding: "2rem",
@@ -158,6 +187,7 @@ const MyBookings = () => {
           </div>
         )}
 
+        {/* Loading skeleton */}
         {loading && (
           <div className="mb-list">
             {[...Array(3)].map((_, i) => (
@@ -173,6 +203,7 @@ const MyBookings = () => {
           </div>
         )}
 
+        {/* Booking cards */}
         {!loading && !error && filtered.length > 0 && (
           <div className="mb-list">
             {filtered.map((booking, i) => (
@@ -213,20 +244,34 @@ const MyBookings = () => {
                 </div>
 
                 <div className="mb-card__actions">
-                  {/* ✅ FIXED — navigates to specific room page */}
                   <button
                     className="mb-card__view"
                     onClick={() => navigate(`/rooms/${booking.roomId}`)}
                   >
                     View Room
                   </button>
+
                   {booking.status === "upcoming" && (
                     <button
                       className="mb-card__cancel"
                       onClick={() => handleCancel(booking.id)}
                       disabled={cancelling === booking.id}
                     >
-                      {cancelling === booking.id ? "Cancelling..." : "Cancel"}
+                      {cancelling === booking.id ? (
+                        <span style={{
+                          display: "flex", alignItems: "center", gap: "6px"
+                        }}>
+                          <span style={{
+                            width: "12px", height: "12px",
+                            border: "2px solid rgba(255,255,255,0.4)",
+                            borderTop: "2px solid #fff",
+                            borderRadius: "50%",
+                            animation: "spin 0.7s linear infinite",
+                            display: "inline-block"
+                          }} />
+                          Cancelling...
+                        </span>
+                      ) : "Cancel Booking"}
                     </button>
                   )}
                 </div>
@@ -235,6 +280,7 @@ const MyBookings = () => {
           </div>
         )}
 
+        {/* Empty state */}
         {!loading && !error && filtered.length === 0 && (
           <div className="mb-empty">
             <span className="mb-empty__icon">

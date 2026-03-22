@@ -29,7 +29,6 @@ class RoomSerializer(serializers.ModelSerializer):
         ]
 
     def get_occupiedDates(self, obj):
-        # ✅ Returns list of { date, room } for calendar blocking on frontend
         dates = OccupiedDate.objects.filter(room=obj)
         return OccupiedDateSerializer(dates, many=True).data
 
@@ -40,7 +39,6 @@ class OccupiedDateSerializer(serializers.ModelSerializer):
         fields = ['id', 'room', 'user', 'date']
 
     def validate(self, data):
-        # ✅ Block duplicate date for same room
         exists = OccupiedDate.objects.filter(
             room=data['room'],
             date=data['date']
@@ -69,19 +67,16 @@ class BookingSerializer(serializers.ModelSerializer):
         check_out = data.get('check_out')
         today     = datetime.date.today()
 
-        # check_in cannot be in the past
         if check_in and check_in < today:
             raise serializers.ValidationError(
                 {"check_in": "Check-in date cannot be in the past."}
             )
 
-        # check_out must be after check_in
         if check_in and check_out and check_out <= check_in:
             raise serializers.ValidationError(
                 {"check_out": "Check-out must be after check-in."}
             )
 
-        # Block overlapping bookings for same room
         if check_in and check_out and data.get('room'):
             overlap = Booking.objects.filter(
                 room       = data['room'],
@@ -102,11 +97,29 @@ class BookingSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model  = User
-        fields = ['id', 'username', 'email', 'full_name', 'password']
+        fields = [
+            'id', 'username', 'email',
+            'full_name', 'password',
+            'is_staff', 'is_superuser',  # ✅ added
+        ]
         extra_kwargs = {
-            'password': {'write_only': True},
+            'password':     {'write_only': True},
+            'username':     {'required': False},   # ✅ added
+            'is_staff':     {'read_only': True},   # ✅ added
+            'is_superuser': {'read_only': True},   # ✅ added
         }
 
     def create(self, validated_data):
+        # ✅ Auto-generate username from email
+        if 'username' not in validated_data or not validated_data['username']:
+            email         = validated_data.get('email', '')
+            base_username = email.split('@')[0]
+            username      = base_username
+            counter       = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+            validated_data['username'] = username
+
         user = User.objects.create_user(**validated_data)
         return user

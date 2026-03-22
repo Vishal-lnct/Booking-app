@@ -46,7 +46,7 @@ const AuthForm = () => {
     setLoading(true);
     try {
       const data = await registerUser({
-        username:  formData.email,
+        // username:  formData.email,
         email:     formData.email,
         password:  formData.password,
         full_name: formData.name,
@@ -148,7 +148,7 @@ const AuthForm = () => {
                   <input
                     type="text"
                     name="name"
-                    placeholder="John Doe"
+                    // placeholder="vishal"
                     value={formData.name}
                     onChange={handleChange}
                     className="auth-input"
@@ -161,11 +161,11 @@ const AuthForm = () => {
             <div className="auth-field">
               <label className="auth-label">Email Address</label>
               <div className="auth-input-wrap">
-                <span className="auth-input-icon">📧</span>
+                <span className="auth-input-icon"></span>
                 <input
                   type="email"
                   name="email"
-                  placeholder="you@email.com"
+                  // placeholder="you@email.com"
                   value={formData.email}
                   onChange={handleChange}
                   className="auth-input"

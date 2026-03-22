@@ -66,7 +66,6 @@ class OccupiedDatesList(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        # ✅ Always return ALL occupied dates — needed for calendar blocking
         return OccupiedDate.objects.all()
 
 
@@ -82,7 +81,6 @@ class BookingList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        # Admin sees all, regular user sees only their own
         if user.is_staff or user.is_superuser:
             return Booking.objects.all()
         return Booking.objects.filter(user=user)
@@ -90,7 +88,6 @@ class BookingList(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         booking = serializer.save(user=self.request.user)
 
-        # ✅ Auto-create OccupiedDate rows so calendar stays in sync
         current = booking.check_in
         while current < booking.check_out:
             OccupiedDate.objects.get_or_create(
@@ -120,12 +117,11 @@ class BookingDetail(generics.RetrieveDestroyAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # ✅ Soft delete — mark cancelled, remove OccupiedDate rows
         booking.status = 'cancelled'
         booking.save()
 
         OccupiedDate.objects.filter(
-            room = booking.room,
+            room      = booking.room,
             date__gte = booking.check_in,
             date__lt  = booking.check_out,
         ).delete()
@@ -168,10 +164,12 @@ class Register(generics.CreateAPIView):
         token, _ = Token.objects.get_or_create(user=user)
         self.response_data = {
             "user": {
-                "id":        user.id,
-                "username":  user.username,
-                "email":     user.email,
-                "full_name": user.full_name,
+                "id":           user.id,
+                "username":     user.username,
+                "email":        user.email,
+                "full_name":    user.full_name,
+                "is_staff":     user.is_staff,      # ✅ added
+                "is_superuser": user.is_superuser,  # ✅ added
             },
             "token": token.key,
         }
@@ -193,14 +191,66 @@ class Login(APIView):
         token, _ = Token.objects.get_or_create(user=user)
         return Response({
             "user": {
-                "id":        user.id,
-                "username":  user.username,
-                "email":     user.email,
-                "full_name": user.full_name,
+                "id":           user.id,
+                "username":     user.username,
+                "email":        user.email,
+                "full_name":    user.full_name,
+                "is_staff":     user.is_staff,      # ✅ added
+                "is_superuser": user.is_superuser,  # ✅ added
             },
             "token": token.key,
         })
+class ToggleRoomAvailability(APIView):
+    permission_classes = [permissions.IsAuthenticated]
 
+    def post(self, request, pk):
+        # ✅ Only admin can toggle
+        if not request.user.is_staff and not request.user.is_superuser:
+            raise PermissionDenied("Admin only.")
+        
+        try:
+            room = Room.objects.get(pk=pk)
+            room.isAvailable = not room.isAvailable  # ✅ flip true/false
+            room.save()
+            return Response({
+                "detail": f"Room is now {'available' if room.isAvailable else 'unavailable'}",
+                "isAvailable": room.isAvailable
+            })
+        except Room.DoesNotExist:
+            return Response({"detail": "Room not found."}, status=404)
+
+
+class AdminCancelBooking(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        # ✅ Only admin can cancel any booking
+        if not request.user.is_staff and not request.user.is_superuser:
+            raise PermissionDenied("Admin only.")
+
+        try:
+            booking = Booking.objects.get(pk=pk)
+
+            if booking.status != 'upcoming':
+                return Response(
+                    {"detail": "Only upcoming bookings can be cancelled."},
+                    status=400
+                )
+
+            booking.status = 'cancelled'
+            booking.save()
+
+            # ✅ Free up occupied dates
+            OccupiedDate.objects.filter(
+                room      = booking.room,
+                date__gte = booking.check_in,
+                date__lt  = booking.check_out,
+            ).delete()
+
+            return Response({"detail": "Booking cancelled successfully."})
+
+        except Booking.DoesNotExist:
+            return Response({"detail": "Booking not found."}, status=404)
 
 class TestToken(generics.RetrieveAPIView):
     queryset           = User.objects.all()

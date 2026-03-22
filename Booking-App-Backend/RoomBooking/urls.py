@@ -16,9 +16,14 @@ urlpatterns = [
     path('occupied-dates/',          views.OccupiedDatesList.as_view(),   name='occupieddate-list'),
     path('occupied-dates/<int:pk>/', views.OccupiedDatesDetail.as_view(), name='occupieddate-detail'),
 
-    # ✅ These were missing — add these two lines
+   
     path('bookings/',                views.BookingList.as_view(),   name='booking-list'),
     path('bookings/<int:pk>/',       views.BookingDetail.as_view(), name='booking-detail'),
+
+
+     path('admin/rooms/<int:pk>/toggle/',    views.ToggleRoomAvailability.as_view(), name='toggle-room'),
+    path('admin/bookings/<int:pk>/cancel/', views.AdminCancelBooking.as_view(),     name='admin-cancel-booking'),
+
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

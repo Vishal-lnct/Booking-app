@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import RoomImageSlider from "./RoomImageSlider";
 import RoomInfo from "./Roominfo";
 import "./RoomDetails.css";
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../UserContext"; // ✅ import context
 
 const RoomCard = ({ room }) => {
-  const navigate         = useNavigate();
+  const navigate            = useNavigate();
+  const { user }            = useContext(UserContext); // ✅ get user
   const [wished, setWished] = useState(false);
+
+  const isAdmin = user?.is_staff || user?.is_superuser; // ✅
 
   const goToRoom = () => navigate(`/rooms/${room.id}`);
 
@@ -91,15 +95,25 @@ const RoomCard = ({ room }) => {
             <span className="room-card__tax">+ taxes & fees</span>
           </div>
 
-          {/* ✅ Always goes to room detail — booking happens there */}
-          <button
-            className="room-card__btn room-card__btn--search"
-            onClick={goToRoom}
-          >
-            View & Book
-          </button>
-        </div>
+          {/* ✅ Hide View & Book for admin, show View Details instead */}
+          {isAdmin ? (
+            <button
+              className="room-card__btn room-card__btn--search"
+              onClick={goToRoom}
+              style={{ background: "#666" }}
+            >
+              View Details
+            </button>
+          ) : (
+            <button
+              className="room-card__btn room-card__btn--search"
+              onClick={goToRoom}
+            >
+              View & Book
+            </button>
+          )}
 
+        </div>
       </div>
     </div>
   );

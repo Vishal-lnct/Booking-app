@@ -3,12 +3,16 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import RoomCard from "./RoomDetails/RoomCard";
 import { getRooms } from "../api/bookingService";
 import { UserContext } from "./UserContext";
+import { useNavigate } from "react-router-dom"; // ✅ added
 import "./BookingComponent.css";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const BookingComponent = () => {
-  const { user, token } = useContext(UserContext); // ✅ from context, not prop
+  const { user, token } = useContext(UserContext);
+  const navigate        = useNavigate(); // ✅ added
+
+  const isAdmin = user?.is_staff || user?.is_superuser; // ✅ added
 
   const [selectedDates, setSelectedDates] = useState({ startDate: null, endDate: null });
   const [currentDate,   setCurrentDate]   = useState(new Date());
@@ -17,24 +21,18 @@ const BookingComponent = () => {
   const [error,         setError]         = useState("");
   const [success,       setSuccess]       = useState("");
   const [roomData,      setRoomData]      = useState([]);
-  const [occupiedDates, setOccupiedDates] = useState([]); // ✅ real occupied dates from API
+  const [occupiedDates, setOccupiedDates] = useState([]);
   const [loading,       setLoading]       = useState(false);
 
-  // ✅ Fetch rooms
   useEffect(() => {
     getRooms()
       .then(data => setRoomData(data))
       .catch(err => console.error("Error fetching rooms:", err));
   }, []);
 
-  // ✅ Fetch ALL occupied dates from backend (to block booked dates)
   useEffect(() => {
     fetch("http://127.0.0.1:8000/api/occupied-dates/", {
-      headers: {
-        "Content-Type": "application/json",
-        // no auth needed if this is a public endpoint
-        // if protected: add → "Authorization": `Token ${token}`
-      },
+      headers: { "Content-Type": "application/json" },
     })
       .then(res => res.json())
       .then(data => setOccupiedDates(data))
@@ -92,14 +90,13 @@ const BookingComponent = () => {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const { startDate, endDate } = selectedDates;
 
-    if (date < today) return "past";
+    if (date < today)  return "past";
     if (startDate && date.getTime() === startDate.getTime()) return "start";
     if (endDate   && date.getTime() === endDate.getTime())   return "end";
     if (startDate && endDate && date > startDate && date < endDate) return "range";
     return "";
   };
 
-  // ✅ Check if a specific date is occupied for a specific room
   const isDateOccupied = (roomId, date) => {
     const dateStr = date.toISOString().split("T")[0];
     return occupiedDates.some(
@@ -107,7 +104,6 @@ const BookingComponent = () => {
     );
   };
 
-  // ✅ Generate all dates between start and end
   const getDateRange = (start, end) => {
     const dates = [];
     const current = new Date(start);
@@ -125,25 +121,14 @@ const BookingComponent = () => {
     : 0;
 
   const handleFilterRooms = () => {
-    if (!selectedDates.startDate) {
-      setError("Please select a check-in date.");
-      return;
-    }
-    if (!selectedDates.endDate) {
-      setError("Please select a check-out date.");
-      return;
-    }
+    if (!selectedDates.startDate) { setError("Please select a check-in date."); return; }
+    if (!selectedDates.endDate)   { setError("Please select a check-out date."); return; }
     if (selectedDates.startDate.getTime() === selectedDates.endDate.getTime()) {
-      setError("Check-out must be after check-in.");
-      return;
+      setError("Check-out must be after check-in."); return;
     }
 
     setLoading(true);
-    const start = selectedDates.startDate;
-    const end   = selectedDates.endDate;
-    const range = getDateRange(start, end);
-
-    // ✅ Filter rooms by checking occupied dates from API
+    const range    = getDateRange(selectedDates.startDate, selectedDates.endDate);
     const available = roomData.filter(room =>
       range.every(date => !isDateOccupied(room.id, date))
     );
@@ -156,11 +141,63 @@ const BookingComponent = () => {
     }, 600);
   };
 
-  const days = generateCalendarDays();
-
+  const days      = generateCalendarDays();
   const formatDate = d => d
     ? d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })
     : "—";
+
+  // ✅ Show admin message instead of booking calendar
+  if (isAdmin) {
+    return (
+      <div style={{
+        textAlign: "center",
+        padding: "3rem 2rem",
+        background: "linear-gradient(135deg, #fff8f8, #fff)",
+        borderRadius: "16px",
+        margin: "2rem auto",
+        maxWidth: "500px",
+        boxShadow: "0 4px 20px rgba(230,0,35,0.08)",
+        border: "1px solid rgba(230,0,35,0.1)"
+      }}>
+        <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🛠️</div>
+        <h3 style={{
+          color: "#e60023",
+          fontSize: "1.3rem",
+          fontWeight: "700",
+          margin: "0 0 0.5rem"
+        }}>
+          Admin Mode Active
+        </h3>
+        <p style={{
+          color: "#666",
+          fontSize: "14px",
+          lineHeight: "1.6",
+          margin: "0 0 1.5rem"
+        }}>
+          Admins cannot make bookings. Use the Admin Dashboard
+          to manage rooms, bookings and users.
+        </p>
+        <button
+          onClick={() => navigate("/admin")}
+          style={{
+            background: "#e60023",
+            color: "white",
+            border: "none",
+            padding: "12px 28px",
+            borderRadius: "8px",
+            cursor: "pointer",
+            fontSize: "14px",
+            fontWeight: "600",
+            transition: "opacity 0.2s"
+          }}
+          onMouseOver={e => e.target.style.opacity = "0.85"}
+          onMouseOut={e  => e.target.style.opacity = "1"}
+        >
+          Go to Admin Dashboard →
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="bc-wrap">
@@ -172,8 +209,6 @@ const BookingComponent = () => {
           <h2 className="bc-title">Pick Your Dates</h2>
           <p className="bc-sub">Select check-in & check-out to see available rooms</p>
         </div>
-
-        {/* ✅ Show logged-in user greeting */}
         {user && (
           <div className="bc-header__right" style={{ fontSize: "14px", color: "#666" }}>
             👋 Hi, {user.username}
@@ -182,8 +217,6 @@ const BookingComponent = () => {
       </div>
 
       <div className="bc-body">
-
-        {/* Calendar Card */}
         <div className="bc-calendar-card">
 
           <div className="bc-date-summary">
@@ -273,8 +306,8 @@ const BookingComponent = () => {
                   key={room.id}
                   room={room}
                   selectedDateRange={selectedDates}
-                  currentUser={user}   // ✅ pass user from context
-                  token={token}        // ✅ pass token from context
+                  currentUser={user}
+                  token={token}
                   onBookingSuccess={() => {
                     setSelectedDates({ startDate: null, endDate: null });
                     setFilteredRooms([]);
@@ -303,9 +336,7 @@ const BookingComponent = () => {
         </div>
       )}
 
-      {success && (
-        <div className="bc-success">{success}</div>
-      )}
+      {success && <div className="bc-success">{success}</div>}
     </div>
   );
 };

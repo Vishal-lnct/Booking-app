@@ -4,17 +4,24 @@ import "./Navbar.css";
 import { UserContext } from "./UserContext";
 
 const Navbar = () => {
-  const { user, logout } = useContext(UserContext); // ✅ use logout, remove setUser
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const { user, logout } = useContext(UserContext);
+  const navigate   = useNavigate();
+  const location   = useLocation();
   const [scrolled,    setScrolled]    = useState(false);
   const [menuOpen,    setMenuOpen]    = useState(false);
   const [dropOpen,    setDropOpen]    = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const dropRef = useRef(null);
+  const dropRef     = useRef(null);
+  const debounceRef = useRef(null);
 
-  // ✅ FIXED: user IS the user now — no more user?.user nesting
   const currentUser = user;
+  const isAdmin = currentUser?.is_staff || currentUser?.is_superuser; // ✅
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const city   = params.get("city") || "";
+    setSearchQuery(city);
+  }, [location.search]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -34,14 +41,31 @@ const Navbar = () => {
   }, []);
 
   function handleLogout() {
-    logout(); // ✅ one call — clears user, token, localStorage all at once
+    logout();
     navigate("/");
+  }
+
+  function handleSearchChange(e) {
+    const value = e.target.value;
+    setSearchQuery(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      if (value.trim() === "") navigate("/");
+      else navigate(`/rooms?city=${value.trim()}`);
+    }, 300);
   }
 
   function handleSearch(e) {
     e.preventDefault();
-    if (searchQuery.trim())
-      navigate(`/rooms?city=${searchQuery.trim()}`);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (searchQuery.trim() === "") navigate("/");
+    else navigate(`/rooms?city=${searchQuery.trim()}`);
+  }
+
+  function handleClear() {
+    setSearchQuery("");
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    navigate("/");
   }
 
   const isActive = path => location.pathname === path;
@@ -60,29 +84,28 @@ const Navbar = () => {
           <span className="navbar__logo-name">StayEase</span>
         </Link>
 
-        {/* ── SEARCH BAR (desktop) ── */}
+        {/* ── SEARCH BAR ── */}
         <form className="navbar__search" onSubmit={handleSearch}>
           <span className="navbar__search-icon">🔍</span>
           <input
             type="text"
             placeholder="Search city, hotel..."
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
             className="navbar__search-input"
+            autoComplete="off"
           />
           {searchQuery && (
             <button
               type="button"
               className="navbar__search-clear"
-              onClick={() => setSearchQuery("")}
+              onClick={handleClear}
             >✕</button>
           )}
         </form>
 
         {/* ── RIGHT ── */}
         <div className="navbar__right">
-
-          {/* Nav Links */}
           <ul className="navbar__links">
             <li>
               <Link to="/"
@@ -96,7 +119,9 @@ const Navbar = () => {
                 Rooms
               </Link>
             </li>
-            {currentUser && (
+
+            {/* ✅ My Bookings — hidden for admin */}
+            {currentUser && !isAdmin && (
               <li>
                 <Link to="/my-bookings"
                   className={`navbar__link ${isActive("/my-bookings") ? "navbar__link--active" : ""}`}>
@@ -104,12 +129,20 @@ const Navbar = () => {
                 </Link>
               </li>
             )}
+
+            {/* ✅ Admin link — only for admin */}
+            {currentUser && isAdmin && (
+              <li>
+                <Link to="/admin"
+                  className={`navbar__link ${isActive("/admin") ? "navbar__link--active" : ""}`}>
+                  🛠️ Admin
+                </Link>
+              </li>
+            )}
           </ul>
 
-          {/* Divider */}
           <div className="navbar__divider" />
 
-          {/* Auth */}
           {currentUser ? (
             <div className="navbar__user" ref={dropRef}>
               <button
@@ -117,7 +150,6 @@ const Navbar = () => {
                 onClick={() => setDropOpen(p => !p)}
               >
                 <div className="navbar__avatar">
-                  {/* ✅ currentUser.username directly — no more currentUser.user.username */}
                   {currentUser.username?.charAt(0).toUpperCase()}
                 </div>
                 <span className="navbar__username">{currentUser.username}</span>
@@ -141,12 +173,21 @@ const Navbar = () => {
                     </div>
                   </div>
                   <div className="navbar__dropdown-divider" />
-                  <Link to="/my-bookings" className="navbar__dropdown-item">
-                    📋 My Bookings
-                  </Link>
-                  <Link to="/my-bookings" className="navbar__dropdown-item">
-                    ❤️ Wishlist
-                  </Link>
+
+                  {/* ✅ My Bookings — hidden for admin */}
+                  {!isAdmin && (
+                    <Link to="/my-bookings" className="navbar__dropdown-item">
+                      📋 My Bookings
+                    </Link>
+                  )}
+
+                  {/* ✅ Admin Dashboard — only for admin */}
+                  {isAdmin && (
+                    <Link to="/admin" className="navbar__dropdown-item">
+                      🛠️ Admin Dashboard
+                    </Link>
+                  )}
+
                   <div className="navbar__dropdown-divider" />
                   <button
                     className="navbar__dropdown-item navbar__dropdown-item--red"
@@ -164,7 +205,6 @@ const Navbar = () => {
             </div>
           )}
 
-          {/* Hamburger */}
           <button
             className={`navbar__hamburger ${menuOpen ? "navbar__hamburger--open" : ""}`}
             onClick={() => setMenuOpen(p => !p)}
@@ -178,39 +218,48 @@ const Navbar = () => {
       {/* ── MOBILE DRAWER ── */}
       {menuOpen && (
         <div className="navbar__drawer">
-
           <form className="navbar__drawer-search" onSubmit={handleSearch}>
             <span>🔍</span>
             <input
               type="text"
               placeholder="Search city, hotel..."
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
+              autoComplete="off"
             />
           </form>
 
           <ul className="navbar__drawer-links">
             <li><Link to="/">🏠 Explore</Link></li>
             <li><Link to="/rooms">🛏️ Rooms</Link></li>
-            {currentUser && (
+
+            {/* ✅ My Bookings — hidden for admin */}
+            {currentUser && !isAdmin && (
               <li><Link to="/my-bookings">📋 My Bookings</Link></li>
             )}
+
+            {/* ✅ Admin link — only for admin */}
+            {currentUser && isAdmin && (
+              <li><Link to="/admin">🛠️ Admin Dashboard</Link></li>
+            )}
+
             {currentUser ? (
-              <>
-                <li><Link to="/my-bookings">❤️ Wishlist</Link></li>
-                <li>
-                  <button
-                    className="navbar__drawer-signout"
-                    onClick={handleLogout}
-                  >
-                    🚪 Sign Out
-                  </button>
-                </li>
-              </>
+              <li>
+                <button
+                  className="navbar__drawer-signout"
+                  onClick={handleLogout}
+                >
+                  🚪 Sign Out
+                </button>
+              </li>
             ) : (
               <>
                 <li><Link to="/auth">👤 Log In</Link></li>
-                <li><Link to="/auth" className="navbar__drawer-signup">✨ Sign Up Free</Link></li>
+                <li>
+                  <Link to="/auth" className="navbar__drawer-signup">
+                    ✨ Sign Up Free
+                  </Link>
+                </li>
               </>
             )}
           </ul>

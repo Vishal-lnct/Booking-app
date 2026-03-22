@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom"; // ✅ removed useNavigate — not needed anymore
+import { useLocation } from "react-router-dom";
 import RoomCard from "./RoomDetails/RoomCard";
 import "./AllRooms.css";
 
@@ -10,18 +10,19 @@ function AllRooms() {
   const [filteredRooms, setFilteredRooms] = useState([]);
   const [loading,       setLoading]       = useState(true);
 
-  const [maxPrice,          setMaxPrice]          = useState(10000);
-  const [selectedTypes,     setSelectedTypes]     = useState([]);
-  const [selectedAmenities, setSelectedAmenities] = useState([]);
-  const [selectedOccupancy, setSelectedOccupancy] = useState(null);
-  const [selectedRating,    setSelectedRating]    = useState(null);
-  const [sidebarOpen,       setSidebarOpen]       = useState(false);
-
   const locationHook   = useLocation();
   const queryParams    = new URLSearchParams(locationHook.search);
   const searchLocation = queryParams.get("location") || queryParams.get("city");
   const checkIn        = queryParams.get("checkIn");
   const checkOut       = queryParams.get("checkOut");
+  const urlMaxPrice    = queryParams.get("maxPrice"); // ✅ read maxPrice from URL
+
+  const [maxPrice,          setMaxPrice]          = useState(urlMaxPrice ? Number(urlMaxPrice) : 10000); // ✅ fixed
+  const [selectedTypes,     setSelectedTypes]     = useState([]);
+  const [selectedAmenities, setSelectedAmenities] = useState([]);
+  const [selectedOccupancy, setSelectedOccupancy] = useState(null);
+  const [selectedRating,    setSelectedRating]    = useState(null);
+  const [sidebarOpen,       setSidebarOpen]       = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -244,7 +245,6 @@ function AllRooms() {
                   className="ar-grid__item"
                   style={{ animationDelay: `${i * 0.05}s` }}
                 >
-                  {/* ✅ Only pass room — RoomCard handles navigation internally */}
                   <RoomCard room={room} />
                 </div>
               ))}

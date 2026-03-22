@@ -1,109 +1,85 @@
-import { useState } from "react";
+// Hero.jsx
 import { useNavigate } from "react-router-dom";
 import "./Hero.css";
 
 const Hero = () => {
-  const [city,     setCity]     = useState("");
-  const [checkIn,  setCheckIn]  = useState("");
-  const [checkOut, setCheckOut] = useState("");
   const navigate = useNavigate();
-
-  const today = new Date().toISOString().split("T")[0];
-
-  function handleSearch(e) {
-    e.preventDefault();
-    const params = new URLSearchParams();
-    if (city)     params.append("city",     city);
-    if (checkIn)  params.append("checkIn",  checkIn);
-    if (checkOut) params.append("checkOut", checkOut);
-    navigate(`/rooms?${params.toString()}`);
-  }
 
   return (
     <section className="hero">
-      <div className="hero-content">
-        <div className="hero-badge">🏨 India's Trusted Hotel Booking</div>
 
-        <h1 className="hero-title">
-          Find Your <span>Perfect</span><br />Stay
+      {/* Animated background overlay */}
+      <div className="hero__overlay" />
+
+      <div className="hero__content">
+
+        {/* Badge */}
+        <div className="hero__badge">
+          <span className="hero__badge-dot" />
+          India's Most Trusted Hotel Booking
+        </div>
+
+        {/* Headline */}
+        <h1 className="hero__title">
+          Find Your<br />
+          <span className="hero__title-accent">Perfect Stay</span>
         </h1>
 
-        <p className="hero-subtitle">
-          Book hotels at the best prices — comfort, style & savings guaranteed.
+        {/* Subtitle */}
+        <p className="hero__subtitle">
+          Discover handpicked hotels across 500+ cities —
+          best prices, free cancellation, instant confirmation.
         </p>
 
-        {/* Search Bar */}
-        <form className="hero-search" onSubmit={handleSearch}>
-          <div className="hero-search__field">
-            <span className="hero-search__icon">📍</span>
-            <input
-              type="text"
-              placeholder="City (Goa, Delhi...)"
-              value={city}
-              onChange={e => setCity(e.target.value)}
-            />
-          </div>
-
-          <div className="hero-search__divider" />
-
-          <div className="hero-search__field">
-            <span className="hero-search__icon">📅</span>
-            <input
-              type="date"
-              value={checkIn}
-              min={today}
-              onChange={e => { setCheckIn(e.target.value); setCheckOut(""); }}
-              placeholder="Check-in"
-            />
-          </div>
-
-          <div className="hero-search__divider" />
-
-          <div className="hero-search__field">
-            <span className="hero-search__icon">📅</span>
-            <input
-              type="date"
-              value={checkOut}
-              min={checkIn || today}
-              disabled={!checkIn}
-              onChange={e => setCheckOut(e.target.value)}
-              placeholder="Check-out"
-            />
-          </div>
-
-          <button type="submit" className="hero-search-btn">
-            Search
+        {/* CTA Buttons */}
+        <div className="hero__actions">
+          <button
+            className="hero__btn hero__btn--primary"
+            onClick={() => navigate("/rooms")}
+          >
+            Explore Rooms
           </button>
-        </form>
+        <button
+  className="hero__btn hero__btn--secondary"
+  onClick={() => navigate("/rooms?maxPrice=3000")}
+>
+  View Deals →
+</button>
+        </div>
 
-        {/* Trust Badges */}
-        <div className="hero-trust">
-          <div className="hero-trust-item"><span>✅</span><span>Free Cancellation</span></div>
-          <div className="hero-trust-item"><span>💳</span><span>Pay at Hotel</span></div>
-          <div className="hero-trust-item"><span>🔒</span><span>Secure Booking</span></div>
-          <div className="hero-trust-item"><span>📞</span><span>24/7 Support</span></div>
+        {/* Trust badges */}
+        <div className="hero__trust">
+          <div className="hero__trust-item"><span>✅</span> Free Cancellation</div>
+          <div className="hero__trust-item"><span>💳</span> Pay at Hotel</div>
+          <div className="hero__trust-item"><span>🔒</span> Secure Booking</div>
+          <div className="hero__trust-item"><span>📞</span> 24/7 Support</div>
+        </div>
+
+      </div>
+
+      {/* Stats strip */}
+      <div className="hero__stats">
+        <div className="hero__stat">
+          <div className="hero__stat-num">100+</div>
+          <div className="hero__stat-lbl">Rooms</div>
+        </div>
+        <div className="hero__stat-div" />
+        <div className="hero__stat">
+          <div className="hero__stat-num">50+</div>
+          <div className="hero__stat-lbl">Cities</div>
+        </div>
+        <div className="hero__stat-div" />
+        <div className="hero__stat">
+          <div className="hero__stat-num">2M+</div>
+          <div className="hero__stat-lbl">Happy guests</div>
+        </div>
+        <div className="hero__stat-div" />
+        <div className="hero__stat">
+          <div className="hero__stat-num">4.8 ★</div>
+          <div className="hero__stat-lbl">Avg rating</div>
         </div>
       </div>
 
-      {/* Stats Strip */}
-      <div className="hero-stats">
-        <div className="hero-stat">
-          <div className="hero-stat__number">10,000+</div>
-          <div className="hero-stat__label">Hotels</div>
-        </div>
-        <div className="hero-stat">
-          <div className="hero-stat__number">500+</div>
-          <div className="hero-stat__label">Cities</div>
-        </div>
-        <div className="hero-stat">
-          <div className="hero-stat__number">2M+</div>
-          <div className="hero-stat__label">Happy Guests</div>
-        </div>
-        <div className="hero-stat">
-          <div className="hero-stat__number">4.8★</div>
-          <div className="hero-stat__label">Avg Rating</div>
-        </div>
-      </div>
     </section>
   );
 };

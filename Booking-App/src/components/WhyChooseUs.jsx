@@ -1,109 +1,125 @@
+// WhyChooseUs.jsx
 import "./WhyChooseUs.css";
 
 const FEATURES = [
   {
     icon: "💰",
     title: "Best Prices",
-    desc: "Get the lowest prices guaranteed. We match any rate you find elsewhere.",
+    desc: "Lowest prices guaranteed. We match any rate you find elsewhere.",
     stat: "70% OFF",
     statLabel: "avg savings",
+    color: "#fff7ed",
+    border: "#fed7aa",
   },
   {
     icon: "🔒",
     title: "Secure Booking",
-    desc: "100% encrypted payments. Your data and money are always safe with us.",
+    desc: "100% encrypted payments. Your data is always safe with us.",
     stat: "256-bit",
     statLabel: "SSL encryption",
+    color: "#f0fdf4",
+    border: "#bbf7d0",
   },
   {
     icon: "📞",
     title: "24/7 Support",
-    desc: "Round-the-clock customer support. We're always here whenever you need us.",
+    desc: "Round-the-clock support — always here whenever you need us.",
     stat: "24/7",
     statLabel: "always available",
+    color: "#eff6ff",
+    border: "#bfdbfe",
   },
   {
     icon: "✅",
     title: "Free Cancellation",
-    desc: "Plans change — cancel for free on most bookings up to 24 hours before.",
+    desc: "Plans change — cancel for free up to 24 hours before check-in.",
     stat: "Free",
     statLabel: "cancellation",
+    color: "#fdf4ff",
+    border: "#e9d5ff",
   },
   {
     icon: "🏨",
     title: "Verified Hotels",
-    desc: "Every property is manually verified by our team for quality and comfort.",
-    stat: "10K+",
-    statLabel: "verified hotels",
+    desc: "Every property is manually verified for quality and comfort.",
+    stat: "100+",
+    statLabel: "verified rooms",
+    color: "#fff0f2",
+    border: "#fecdd3",
   },
   {
     icon: "⚡",
-    title: "Instant Confirmation",
-    desc: "Book in seconds and get instant confirmation on your email and phone.",
+    title: "Instant Confirm",
+    desc: "Book in seconds and get instant confirmation on your phone.",
     stat: "<10s",
     statLabel: "confirmation",
+    color: "#fefce8",
+    border: "#fef08a",
   },
 ];
 
-const WhyChooseUs = () => {
-  return (
-    <section className="wcu-section">
+const WhyChooseUs = () => (
+  <section className="wcu-section">
 
-      {/* Header */}
-      <div className="wcu-header">
-        <span className="wcu-badge">⭐ Why StayEase</span>
-        <h2 className="wcu-title">Why Choose Us?</h2>
-        <p className="wcu-sub">
-          Millions of travellers trust StayEase for the best hotel booking experience in India.
-        </p>
-      </div>
+    {/* ── HEADER ── */}
+    <div className="wcu-header">
+      <span className="wcu-badge">
+        <span className="wcu-badge__star">⭐</span>
+        Why StayEase
+      </span>
+      <h2 className="wcu-title">
+        Why <span className="wcu-title__accent">Choose Us?</span>
+      </h2>
+      <p className="wcu-sub">
+        Millions of travellers trust StayEase for the best hotel booking experience in India.
+      </p>
+    </div>
 
-      {/* Cards Grid */}
-      <div className="wcu-grid">
-        {FEATURES.map((f, i) => (
-          <div
-            key={f.title}
-            className="wcu-card"
-            style={{ animationDelay: `${i * 0.08}s` }}
-          >
-            <div className="wcu-card__top">
-              <div className="wcu-card__icon">{f.icon}</div>
-              <div className="wcu-card__stat-wrap">
-                <span className="wcu-card__stat">{f.stat}</span>
-                <span className="wcu-card__stat-lbl">{f.statLabel}</span>
-              </div>
+    {/* ── CARDS ── */}
+    <div className="wcu-grid">
+      {FEATURES.map((f, i) => (
+        <div
+          key={f.title}
+          className="wcu-card"
+          style={{ animationDelay: `${i * 0.07}s` }}
+        >
+          <div className="wcu-card__top">
+            <div
+              className="wcu-card__icon"
+              style={{ background: f.color, border: `1px solid ${f.border}` }}
+            >
+              {f.icon}
             </div>
-            <h3 className="wcu-card__title">{f.title}</h3>
-            <p className="wcu-card__desc">{f.desc}</p>
+            <div className="wcu-card__stat-wrap">
+              <span className="wcu-card__stat">{f.stat}</span>
+              <span className="wcu-card__stat-lbl">{f.statLabel}</span>
+            </div>
           </div>
-        ))}
-      </div>
+          <h3 className="wcu-card__title">{f.title}</h3>
+          <p className="wcu-card__desc">{f.desc}</p>
+        </div>
+      ))}
+    </div>
 
-      {/* Bottom trust strip */}
-      <div className="wcu-trust">
-        <div className="wcu-trust__item">
-          <span className="wcu-trust__num">2M+</span>
-          <span className="wcu-trust__lbl">Happy Guests</span>
-        </div>
-        <div className="wcu-trust__div" />
-        <div className="wcu-trust__item">
-          <span className="wcu-trust__num">10K+</span>
-          <span className="wcu-trust__lbl">Hotels</span>
-        </div>
-        <div className="wcu-trust__div" />
-        <div className="wcu-trust__item">
-          <span className="wcu-trust__num">500+</span>
-          <span className="wcu-trust__lbl">Cities</span>
-        </div>
-        <div className="wcu-trust__div" />
-        <div className="wcu-trust__item">
-          <span className="wcu-trust__num">4.8★</span>
-          <span className="wcu-trust__lbl">Avg Rating</span>
-        </div>
-      </div>
+    {/* ── TRUST STRIP ── */}
+    <div className="wcu-trust">
+      {[
+        { num: "2M+",  lbl: "Happy guests" },
+        { num: "100+", lbl: "Rooms" },
+        { num: "50+",  lbl: "Cities" },
+        { num: "4.8★", lbl: "Avg rating" },
+      ].map((item, i, arr) => (
+        <>
+          <div key={item.lbl} className="wcu-trust__item">
+            <span className="wcu-trust__num">{item.num}</span>
+            <span className="wcu-trust__lbl">{item.lbl}</span>
+          </div>
+          {i < arr.length - 1 && <div className="wcu-trust__div" />}
+        </>
+      ))}
+    </div>
 
-    </section>
-  );
-};
+  </section>
+);
 
 export default WhyChooseUs;
