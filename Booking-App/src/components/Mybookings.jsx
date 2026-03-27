@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "./UserContext";
 import "./MyBookings.css";
+import axios from "axios";
 
 const MyBookings = () => {
   const { user, token } = useContext(UserContext);
@@ -16,17 +17,13 @@ const MyBookings = () => {
   useEffect(() => {
     if (!user || !token) return navigate("/auth");
 
-    fetch("http://127.0.0.1:8000/api/bookings/", {
+    axios.get("http://127.0.0.1:8000/api/bookings/", {
       headers: {
         "Authorization": `Token ${token}`,
         "Content-Type": "application/json",
       },
     })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to fetch bookings");
-        return res.json();
-      })
-      .then(data => {
+      .then(({ data }) => {
         const today = new Date().toISOString().split("T")[0];
 
         const list = data.map(booking => {
@@ -35,7 +32,15 @@ const MyBookings = () => {
           const nights   = Math.round(
             (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)
           );
-          const status = checkOut < today ? "completed" : "upcoming";
+
+          // ✅ Trust backend status first, fallback to date-based logic
+          const status =
+            booking.status === "cancelled"
+              ? "cancelled"
+              : checkOut < today
+              ? "completed"
+              : "upcoming";
+
           return {
             id:         booking.id,
             roomId:     booking.room || booking.room_id,
@@ -49,8 +54,8 @@ const MyBookings = () => {
         });
 
         list.sort((a, b) => {
-          if (a.status === "upcoming" && b.status !== "upcoming") return -1;
-          if (a.status !== "upcoming" && b.status === "upcoming") return 1;
+          const order = { upcoming: 0, cancelled: 1, completed: 2 };
+          if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
           return new Date(a.checkIn) - new Date(b.checkIn);
         });
 
@@ -71,27 +76,28 @@ const MyBookings = () => {
     setCancelError("");
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/bookings/${bookingId}/`, {
-        method: "DELETE",
+      await axios.delete(`http://127.0.0.1:8000/api/bookings/${bookingId}/`, {
         headers: {
           "Authorization": `Token ${token}`,
           "Content-Type": "application/json",
         },
       });
 
-      if (res.status === 200 || res.status === 204) {
-        setBookings(prev => prev.filter(b => b.id !== bookingId));
-        return;
-      }
-
-      const errData = await res.json().catch(() => ({}));
-      const message = errData?.detail || "Could not cancel booking.";
-      setCancelError(message);
-      alert(message);
+      // ✅ Mark as cancelled instead of removing from list
+      setBookings(prev =>
+        prev.map(b => b.id === bookingId ? { ...b, status: "cancelled" } : b)
+      );
 
     } catch (err) {
       console.error("Cancel error:", err);
-      alert("Network error. Please check your connection and try again.");
+
+      if (err.response) {
+        const message = err.response.data?.detail || "Could not cancel booking.";
+        setCancelError(message);
+        alert(message);
+      } else {
+        alert("Network error. Please check your connection and try again.");
+      }
     } finally {
       setCancelling(null);
     }
@@ -104,6 +110,12 @@ const MyBookings = () => {
   const filtered = activeTab === "all"
     ? bookings
     : bookings.filter(b => b.status === activeTab);
+
+  const statusLabel = (status) => {
+    if (status === "upcoming")  return "✈️ Upcoming";
+    if (status === "cancelled") return "❌ Cancelled";
+    return "✅ Completed";
+  };
 
   return (
     <div className="mb-page">
@@ -133,6 +145,13 @@ const MyBookings = () => {
               <div className="mb-stat__div" />
               <div className="mb-stat">
                 <span className="mb-stat__num">
+                  {bookings.filter(b => b.status === "cancelled").length}
+                </span>
+                <span className="mb-stat__lbl">Cancelled</span>
+              </div>
+              <div className="mb-stat__div" />
+              <div className="mb-stat">
+                <span className="mb-stat__num">
                   {bookings.filter(b => b.status === "completed").length}
                 </span>
                 <span className="mb-stat__lbl">Completed</span>
@@ -145,17 +164,18 @@ const MyBookings = () => {
       {/* ── CONTENT ── */}
       <div className="mb-content">
 
-        {/* Tabs */}
+        {/* ✅ Tabs — now includes Cancelled */}
         <div className="mb-tabs">
-          {["all", "upcoming", "completed"].map(tab => (
+          {["all", "upcoming", "cancelled", "completed"].map(tab => (
             <button
               key={tab}
               className={`mb-tab ${activeTab === tab ? "mb-tab--active" : ""}`}
               onClick={() => setActiveTab(tab)}
             >
-              {tab === "all"      ? "All Bookings" :
-               tab === "upcoming" ? "✈️ Upcoming"  :
-                                    "✅ Completed"}
+              {tab === "all"       ? "All Bookings"  :
+               tab === "upcoming"  ? "✈️ Upcoming"   :
+               tab === "cancelled" ? "❌ Cancelled"  :
+                                     "✅ Completed"}
               {tab !== "all" && (
                 <span className="mb-tab__count">
                   {bookings.filter(b => b.status === tab).length}
@@ -209,7 +229,7 @@ const MyBookings = () => {
             {filtered.map((booking, i) => (
               <div
                 key={booking.id}
-                className="mb-card"
+                className={`mb-card ${booking.status === "cancelled" ? "mb-card--cancelled" : ""}`}
                 style={{ animationDelay: `${i * 0.07}s` }}
               >
                 <div className="mb-card__icon">🏨</div>
@@ -217,8 +237,9 @@ const MyBookings = () => {
                 <div className="mb-card__info">
                   <div className="mb-card__top">
                     <h3 className="mb-card__name">{booking.roomName}</h3>
+                    {/* ✅ Status badge now handles cancelled */}
                     <span className={`mb-card__status mb-card__status--${booking.status}`}>
-                      {booking.status === "upcoming" ? "✈️ Upcoming" : "✅ Completed"}
+                      {statusLabel(booking.status)}
                     </span>
                   </div>
 
@@ -251,6 +272,7 @@ const MyBookings = () => {
                     View Room
                   </button>
 
+                  {/* ✅ Cancel button only for upcoming */}
                   {booking.status === "upcoming" && (
                     <button
                       className="mb-card__cancel"
@@ -285,6 +307,7 @@ const MyBookings = () => {
           <div className="mb-empty">
             <span className="mb-empty__icon">
               {activeTab === "upcoming"  ? "✈️" :
+               activeTab === "cancelled" ? "❌" :
                activeTab === "completed" ? "✅" : "🏨"}
             </span>
             <h3>
