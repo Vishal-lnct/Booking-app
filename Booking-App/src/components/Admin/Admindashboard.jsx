@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../UserContext";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "./Admindashboard.css";
 
 const AdminDashboard = () => {
@@ -37,13 +38,13 @@ const AdminDashboard = () => {
   const fetchAll = () => {
     if (!token) return;
     Promise.all([
-      fetch("http://127.0.0.1:8000/api/rooms/",    { headers }).then(r => r.json()),
-      fetch("http://127.0.0.1:8000/api/bookings/", { headers }).then(r => r.json()),
-      fetch("http://127.0.0.1:8000/api/users/",    { headers }).then(r => r.json()),
-    ]).then(([roomsData, bookingsData, usersData]) => {
-      setRooms(Array.isArray(roomsData)       ? roomsData    : []);
-      setBookings(Array.isArray(bookingsData) ? bookingsData : []);
-      setUsers(Array.isArray(usersData)       ? usersData    : []);
+      axios.get("http://127.0.0.1:8000/api/rooms/",    { headers }),
+      axios.get("http://127.0.0.1:8000/api/bookings/", { headers }),
+      axios.get("http://127.0.0.1:8000/api/users/",    { headers }),
+    ]).then(([roomsRes, bookingsRes, usersRes]) => {
+      setRooms(Array.isArray(roomsRes.data)       ? roomsRes.data    : []);
+      setBookings(Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
+      setUsers(Array.isArray(usersRes.data)       ? usersRes.data    : []);
       setLoading(false);
     }).catch(err => {
       console.error(err);
@@ -61,11 +62,12 @@ const AdminDashboard = () => {
   // ✅ Toggle room availability
   const handleToggleRoom = async (roomId) => {
     try {
-      const res = await fetch(
+      const res = await axios.post(
         `http://127.0.0.1:8000/api/admin/rooms/${roomId}/toggle/`,
-        { method: "POST", headers }
+        {},
+        { headers }
       );
-      const data = await res.json();
+      const data = res.data;
       setRooms(prev => prev.map(r =>
         r.id === roomId ? { ...r, isAvailable: data.isAvailable } : r
       ));
@@ -79,9 +81,7 @@ const AdminDashboard = () => {
   const handleDeleteRoom = async (roomId) => {
     if (!window.confirm("Delete this room permanently?")) return;
     try {
-      await fetch(`http://127.0.0.1:8000/api/rooms/${roomId}/`, {
-        method: "DELETE", headers
-      });
+      await axios.delete(`http://127.0.0.1:8000/api/rooms/${roomId}/`, { headers });
       setRooms(prev => prev.filter(r => r.id !== roomId));
       showMsg("✅ Room deleted successfully.");
     } catch {
@@ -93,11 +93,12 @@ const AdminDashboard = () => {
   const handleCancelBooking = async (bookingId) => {
     if (!window.confirm("Cancel this booking?")) return;
     try {
-      const res = await fetch(
+      const res = await axios.post(
         `http://127.0.0.1:8000/api/admin/bookings/${bookingId}/cancel/`,
-        { method: "POST", headers }
+        {},
+        { headers }
       );
-      const data = await res.json();
+      const data = res.data;
       setBookings(prev => prev.map(b =>
         b.id === bookingId ? { ...b, status: "cancelled" } : b
       ));
@@ -111,36 +112,31 @@ const AdminDashboard = () => {
   const handleAddRoom = async () => {
     setAddingRoom(true);
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/rooms/", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
+      const res = await axios.post(
+        "http://127.0.0.1:8000/api/rooms/",
+        {
           ...newRoom,
           pricePerNight: Number(newRoom.pricePerNight),
           maxOccupancy:  Number(newRoom.maxOccupancy),
           rating: 4.0,
           totalReviews: 0,
           isAvailable: true,
-        }),
+        },
+        { headers }
+      );
+      setRooms(prev => [...prev, res.data]);
+      setShowAddRoom(false);
+      setNewRoom({
+        name: "", city: "", type: "standard",
+        pricePerNight: "", maxOccupancy: "",
+        description: "", currency: "INR",
+        hasWifi: true, hasAC: true, hasTV: true,
+        hasParking: false, hasBreakfast: false, hasPool: false,
       });
-      if (res.ok) {
-        const data = await res.json();
-        setRooms(prev => [...prev, data]);
-        setShowAddRoom(false);
-        setNewRoom({
-          name: "", city: "", type: "standard",
-          pricePerNight: "", maxOccupancy: "",
-          description: "", currency: "INR",
-          hasWifi: true, hasAC: true, hasTV: true,
-          hasParking: false, hasBreakfast: false, hasPool: false,
-        });
-        showMsg("✅ Room added successfully!");
-      } else {
-        const err = await res.json();
-        showMsg("❌ " + JSON.stringify(err));
-      }
-    } catch {
-      showMsg("❌ Failed to add room.");
+      showMsg("✅ Room added successfully!");
+    } catch (err) {
+      const errData = err.response?.data;
+      showMsg("❌ " + (errData ? JSON.stringify(errData) : "Failed to add room."));
     } finally {
       setAddingRoom(false);
     }

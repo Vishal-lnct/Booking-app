@@ -479,3 +479,24 @@
   .rd-amenities { grid-template-columns: 1fr 1fr; }
   .slider__img { height: 220px; }
 }
+.rd-already-booked {
+  text-align: center;
+  padding: 1.5rem;
+}
+.rd-already-booked__icon { font-size: 2.5rem; }
+.rd-already-booked__btn {
+  margin-top: 1rem;
+  padding: 0.6rem 1.4rem;
+  background: #c0392b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.rd-form__checking {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  color: #666;
+}

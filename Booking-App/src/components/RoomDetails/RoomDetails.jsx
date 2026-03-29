@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { UserContext } from "../UserContext";
 import RoomImageSlider from "./RoomImageSlider";
+import axios from "axios";
 import "./RoomDetails.css";
 
 const AMENITY_MAP = [
@@ -23,9 +24,8 @@ const RoomDetails = () => {
   const [error,   setError]   = useState("");
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/api/rooms/${id}/`)
-      .then(res => { if (!res.ok) throw new Error(); return res.json(); })
-      .then(data => { setRoom(data); setLoading(false); })
+    axios.get(`http://127.0.0.1:8000/api/rooms/${id}/`)
+      .then(res => { setRoom(res.data); setLoading(false); })
       .catch(() => { setError("Room not found."); setLoading(false); });
   }, [id]);
 
@@ -182,7 +182,7 @@ const RoomDetails = () => {
               </div>
             </div>
 
-            {/* ✅ Booking form directly here — no scroll needed */}
+            {/* Booking form or login prompt */}
             {user ? (
               <SingleRoomBooking room={room} token={token} />
             ) : (
@@ -214,11 +214,29 @@ const RoomDetails = () => {
 // ── Booking Form ─────────────────────────────────────────────────
 const SingleRoomBooking = ({ room, token }) => {
   const navigate = useNavigate();
-  const [checkIn,  setCheckIn]  = useState("");
-  const [checkOut, setCheckOut] = useState("");
-  const [booking,  setBooking]  = useState(false);
-  const [booked,   setBooked]   = useState(false);
-  const [error,    setError]    = useState("");
+  const [checkIn,       setCheckIn]       = useState("");
+  const [checkOut,      setCheckOut]      = useState("");
+  const [booking,       setBooking]       = useState(false);
+  const [booked,        setBooked]        = useState(false);
+  const [error,         setError]         = useState("");
+  const [alreadyBooked, setAlreadyBooked] = useState(false);
+  const [checkingBook,  setCheckingBook]  = useState(true); // loading state for the check
+
+  // ✅ Check if user already has an upcoming booking for this room
+  useEffect(() => {
+    if (!token) return;
+    axios.get("http://127.0.0.1:8000/api/bookings/", {
+      headers: { Authorization: `Token ${token}` },
+    })
+      .then(res => {
+        const hasActive = res.data.some(
+          b => b.room === room.id && b.status === "upcoming"
+        );
+        setAlreadyBooked(hasActive);
+      })
+      .catch(() => {}) // silently fail — don't block UI
+      .finally(() => setCheckingBook(false));
+  }, [token, room.id]);
 
   const today  = new Date().toISOString().split("T")[0];
   const nights = checkIn && checkOut
@@ -233,37 +251,48 @@ const SingleRoomBooking = ({ room, token }) => {
     setBooking(true); setError("");
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/bookings/", {
-        method: "POST",
-        headers: {
-          "Content-Type":  "application/json",
-          "Authorization": `Token ${token}`,
-        },
-        body: JSON.stringify({
-          room:      room.id,
-          check_in:  checkIn,
-          check_out: checkOut,
-        }),
-      });
-
-      if (!res.ok) {
-        const e = await res.json();
-        setError(
-          e?.detail ||
-          e?.non_field_errors?.[0] ||
-          e?.check_in?.[0] ||
-          e?.check_out?.[0] ||
-          "Booking failed. Please try again."
-        );
-        return;
-      }
-
+      await axios.post(
+        "http://127.0.0.1:8000/api/bookings/",
+        { room: room.id, check_in: checkIn, check_out: checkOut },
+        { headers: { "Content-Type": "application/json", Authorization: `Token ${token}` } }
+      );
       setBooked(true);
       setTimeout(() => navigate("/my-bookings"), 2500);
-
-    } catch { setError("Something went wrong. Please try again."); }
-    finally  { setBooking(false); }
+    } catch (err) {
+      const e = err.response?.data;
+      setError(
+        e?.detail ||
+        e?.non_field_errors?.[0] ||
+        e?.check_in?.[0] ||
+        e?.check_out?.[0] ||
+        "Booking failed. Please try again."
+      );
+    } finally {
+      setBooking(false);
+    }
   };
+
+  // ── Already booked state ──
+  if (checkingBook) return (
+    <div className="rd-form__checking">
+      <div className="rd-spinner" />
+      <p>Checking availability...</p>
+    </div>
+  );
+
+  if (alreadyBooked) return (
+    <div className="rd-already-booked">
+      <div className="rd-already-booked__icon">✅</div>
+      <h3>Already Booked!</h3>
+      <p>You have an upcoming reservation for this room.</p>
+      <button
+        className="rd-already-booked__btn"
+        onClick={() => navigate("/my-bookings")}
+      >
+        View My Bookings
+      </button>
+    </div>
+  );
 
   if (booked) return (
     <div className="rd-booked-success">

@@ -3,12 +3,12 @@
 import axios from "axios";
 import { BASE_URL } from "./config";
 
-// ================== AXIOS INSTANCE ==================
+//  AXIOS INSTANCE
 const API = axios.create({
   baseURL: BASE_URL,
 });
 
-// ================== REQUEST INTERCEPTOR ==================
+// REQUEST INTERCEPTOR 
 API.interceptors.request.use(
   (req) => {
     const token = localStorage.getItem("token");
@@ -22,7 +22,7 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ================== RESPONSE INTERCEPTOR ==================
+//  RESPONSE INTERCEPTOR 
 API.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -31,7 +31,7 @@ API.interceptors.response.use(
   }
 );
 
-// ================== ROOMS APIs ==================
+//  ROOMS APIs
 
 export const getRooms = async () => {
   try {
@@ -62,7 +62,7 @@ export const deleteRoom = async (id) => {
   return res.data;
 };
 
-// ================== BOOKINGS APIs ==================
+//  BOOKINGS APIs
 
 export const getBookings = async () => {
   const res = await API.get("/occupied-dates/");
@@ -84,13 +84,13 @@ export const deleteBooking = async (id) => {
   return res.data;
 };
 
-// ================== AUTH APIs ==================
+// AUTH APIs 
 
 export const loginUser = async (data) => {
   try {
     const res = await API.post("/login/", data);
 
-    // ❌ Don't store token here (we already do in AuthForm)
+    // Don't store token here (we already do in AuthForm)
     return res.data;
   } catch (err) {
     throw err;
@@ -111,7 +111,7 @@ export const logoutUser = () => {
   localStorage.removeItem("user");
 };
 
-// ================== USER APIs ==================
+//  USER APIs 
 
 export const getUser = async (id) => {
   const res = await API.get(`/users/${id}/`);
@@ -123,5 +123,5 @@ export const getAllUsers = async () => {
   return res.data;
 };
 
-// ================== EXPORT ==================
+// EXPORT 
 export default API;
