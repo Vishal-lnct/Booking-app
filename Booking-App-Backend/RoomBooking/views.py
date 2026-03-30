@@ -32,7 +32,10 @@ class RoomList(generics.ListCreateAPIView):
     permission_classes = [IsAdminOrReadOnly]
 
     def get_queryset(self):
-        rooms = Room.objects.filter(isAvailable=True)
+        rooms = Room.objects.all() if (
+            self.request.user.is_authenticated and
+            (self.request.user.is_staff or self.request.user.is_superuser)
+        ) else Room.objects.filter(isAvailable=True)
 
         city       = self.request.GET.get('city')
         max_price  = self.request.GET.get('maxPrice')
@@ -133,8 +136,8 @@ class BookingDetail(generics.RetrieveDestroyAPIView):
 
 
 class UserList(generics.ListAPIView):
-    queryset           = User.objects.all()
     serializer_class   = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]  # ✅ require auth
 
     def get_queryset(self):
         user = self.request.user
@@ -146,6 +149,7 @@ class UserList(generics.ListAPIView):
 class UserDetail(generics.RetrieveAPIView):
     queryset           = User.objects.all()
     serializer_class   = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]  # ✅ require auth
 
     def get_object(self):
         user = self.request.user
@@ -158,6 +162,7 @@ class UserDetail(generics.RetrieveAPIView):
 class Register(generics.CreateAPIView):
     queryset           = User.objects.all()
     serializer_class   = UserSerializer
+    permission_classes = [permissions.AllowAny]  # ✅ allow unauthenticated
 
     def perform_create(self, serializer):
         user = serializer.save()
@@ -167,26 +172,44 @@ class Register(generics.CreateAPIView):
                 "id":           user.id,
                 "username":     user.username,
                 "email":        user.email,
-                "full_name":    user.full_name,
-                "is_staff":     user.is_staff,      # ✅ added
-                "is_superuser": user.is_superuser,  # ✅ added
+                "full_name":    getattr(user, 'full_name', ''),
+                "is_staff":     user.is_staff,
+                "is_superuser": user.is_superuser,
             },
             "token": token.key,
         }
 
     def create(self, request, *args, **kwargs):
         super().create(request, *args, **kwargs)
-        return Response(self.response_data)
+        return Response(self.response_data, status=status.HTTP_201_CREATED)
 
 
 class Login(APIView):
-    def post(self, request, *args, **kwargs):
-        username = request.data.get('username')
-        password = request.data.get('password')
+    permission_classes = [permissions.AllowAny]  # ✅ allow unauthenticated
 
-        user = authenticate(username=username, password=password)
+    def post(self, request, *args, **kwargs):
+        identifier = request.data.get('username')  # frontend sends email here
+        password   = request.data.get('password')
+
+        if not identifier or not password:
+            return Response(
+                {"detail": "Email/username and password are required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # ✅ Try login by email first, then by username
+        user = None
+        try:
+            user_obj = User.objects.get(email=identifier)
+            user = authenticate(username=user_obj.username, password=password)
+        except User.DoesNotExist:
+            user = authenticate(username=identifier, password=password)
+
         if user is None:
-            raise AuthenticationFailed('Invalid username or password')
+            return Response(
+                {"detail": "Invalid email or password."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
         token, _ = Token.objects.get_or_create(user=user)
         return Response({
@@ -194,23 +217,24 @@ class Login(APIView):
                 "id":           user.id,
                 "username":     user.username,
                 "email":        user.email,
-                "full_name":    user.full_name,
-                "is_staff":     user.is_staff,      # ✅ added
-                "is_superuser": user.is_superuser,  # ✅ added
+                "full_name":    getattr(user, 'full_name', ''),
+                "is_staff":     user.is_staff,
+                "is_superuser": user.is_superuser,
             },
             "token": token.key,
-        })
+        }, status=status.HTTP_200_OK)
+
+
 class ToggleRoomAvailability(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk):
-        # ✅ Only admin can toggle
         if not request.user.is_staff and not request.user.is_superuser:
             raise PermissionDenied("Admin only.")
-        
+
         try:
             room = Room.objects.get(pk=pk)
-            room.isAvailable = not room.isAvailable  # ✅ flip true/false
+            room.isAvailable = not room.isAvailable
             room.save()
             return Response({
                 "detail": f"Room is now {'available' if room.isAvailable else 'unavailable'}",
@@ -224,7 +248,6 @@ class AdminCancelBooking(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk):
-        # ✅ Only admin can cancel any booking
         if not request.user.is_staff and not request.user.is_superuser:
             raise PermissionDenied("Admin only.")
 
@@ -240,7 +263,6 @@ class AdminCancelBooking(APIView):
             booking.status = 'cancelled'
             booking.save()
 
-            # ✅ Free up occupied dates
             OccupiedDate.objects.filter(
                 room      = booking.room,
                 date__gte = booking.check_in,
@@ -252,6 +274,8 @@ class AdminCancelBooking(APIView):
         except Booking.DoesNotExist:
             return Response({"detail": "Booking not found."}, status=404)
 
+
 class TestToken(generics.RetrieveAPIView):
     queryset           = User.objects.all()
     serializer_class   = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]

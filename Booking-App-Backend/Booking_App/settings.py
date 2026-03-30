@@ -28,11 +28,11 @@ INSTALLED_APPS = [
 
 # ================== MIDDLEWARE ==================
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # must be at top
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',  # optional disable for testing
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -59,7 +59,6 @@ TEMPLATES = [
 
 # ================== URL CONFIG ==================
 ROOT_URLCONF = 'Booking_App.urls'
-
 WSGI_APPLICATION = 'Booking_App.wsgi.application'
 
 
@@ -74,19 +73,19 @@ DATABASES = {
 
 # ================== AUTH ==================
 AUTH_USER_MODEL = 'RoomBooking.User'
+
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
 
 # ================== REST FRAMEWORK ==================
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',  
+        'rest_framework.permissions.AllowAny',
     ],
 }
 
@@ -94,10 +93,10 @@ REST_FRAMEWORK = {
 # ================== CORS ==================
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "http://localhost:5174",
     "http://127.0.0.1:5173",
-    "http://localhost:3000",
+    "http://127.0.0.1:5174",
 ]
-
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = [

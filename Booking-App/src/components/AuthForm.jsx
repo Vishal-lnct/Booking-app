@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { loginUser, registerUser } from "../api/bookingService";
 
 const AuthForm = () => {
-  const { user, login } = useContext(UserContext); // ✅ login instead of setUser
+  const { user, login } = useContext(UserContext);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({ email: "", password: "", name: "" });
@@ -24,38 +24,72 @@ const AuthForm = () => {
     setError("");
   };
 
+  // ✅ Helper to extract readable error from backend response
+  const extractError = (err) => {
+    const data = err?.response?.data;
+    if (!data) return "Something went wrong. Please try again.";
+    if (typeof data === "string") return data;
+    if (data.detail) return data.detail;
+    // Collect all field errors
+    const messages = Object.entries(data)
+      .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`)
+      .join(" | ");
+    return messages || "Something went wrong.";
+  };
+
   async function handleLogin() {
+    if (!formData.email || !formData.password) {
+      setError("Please enter your email and password.");
+      return;
+    }
     setLoading(true);
     try {
+      // ✅ Send email as username — backend now handles email lookup
       const data = await loginUser({
         username: formData.email,
         password: formData.password,
       });
-      // ✅ No localStorage.setItem — context handles it
-      // ✅ login(userData, token) — flat, clean
+
+      if (!data.token || !data.user) {
+        setError("Unexpected response from server. Please try again.");
+        return;
+      }
+
       login(data.user, data.token);
       navigate("/");
-    } catch {
-      setError("Invalid email or password. Please try again.");
+    } catch (err) {
+      setError(extractError(err));
     } finally {
       setLoading(false);
     }
   }
 
   async function handleRegister() {
+    if (!formData.name || !formData.email || !formData.password) {
+      setError("Please fill in all fields.");
+      return;
+    }
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
     setLoading(true);
     try {
       const data = await registerUser({
-        // username:  formData.email,
         email:     formData.email,
         password:  formData.password,
         full_name: formData.name,
       });
-      // ✅ No localStorage.setItem — context handles it
+
+      if (!data.token || !data.user) {
+        setError("Unexpected response from server. Please try again.");
+        return;
+      }
+
       login(data.user, data.token);
       navigate("/");
-    } catch {
-      setError("Registration failed. Email may already be in use.");
+    } catch (err) {
+      setError(extractError(err));  // ✅ shows actual error, not generic message
     } finally {
       setLoading(false);
     }
@@ -63,6 +97,7 @@ const AuthForm = () => {
 
   const handleSubmit = async e => {
     e.preventDefault();
+    setError("");
     if (isLogin) await handleLogin();
     else         await handleRegister();
   };
@@ -148,7 +183,7 @@ const AuthForm = () => {
                   <input
                     type="text"
                     name="name"
-                    // placeholder="vishal"
+                    placeholder="Your full name"
                     value={formData.name}
                     onChange={handleChange}
                     className="auth-input"
@@ -161,11 +196,11 @@ const AuthForm = () => {
             <div className="auth-field">
               <label className="auth-label">Email Address</label>
               <div className="auth-input-wrap">
-                <span className="auth-input-icon"></span>
+                <span className="auth-input-icon">✉️</span>
                 <input
                   type="email"
                   name="email"
-                  // placeholder="you@email.com"
+                  placeholder="you@email.com"
                   value={formData.email}
                   onChange={handleChange}
                   className="auth-input"
