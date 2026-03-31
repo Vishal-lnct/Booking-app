@@ -71,13 +71,13 @@ const AdminDashboard = () => {
       setRooms(prev => prev.map(r =>
         r.id === roomId ? { ...r, isAvailable: data.isAvailable } : r
       ));
-      showMsg(`✅ ${data.detail}`);
+      showMsg(` ${data.detail}`);
     } catch {
-      showMsg("❌ Failed to toggle room.");
+      showMsg(" Failed to toggle room.");
     }
   };
 
-  // ✅ Delete room
+  // Delete room
   const handleDeleteRoom = async (roomId) => {
     if (!window.confirm("Delete this room permanently?")) return;
     try {
@@ -85,7 +85,7 @@ const AdminDashboard = () => {
       setRooms(prev => prev.filter(r => r.id !== roomId));
       showMsg("✅ Room deleted successfully.");
     } catch {
-      showMsg("❌ Failed to delete room.");
+      showMsg(" Failed to delete room.");
     }
   };
 
