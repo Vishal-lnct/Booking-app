@@ -194,7 +194,7 @@
   .hero__trust   { gap: 16px; }
 }
 @media (max-width: 480px) {
-  .hero__content { padding: 0 16px; }
+  .hero__content { padding: 0 15x; }
   .hero__btn     { width: 100%; text-align: center; }
   .hero__actions { flex-direction: column; }
   .hero__trust   { gap: 10px; }
