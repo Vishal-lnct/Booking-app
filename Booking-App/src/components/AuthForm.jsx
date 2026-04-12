@@ -213,9 +213,13 @@ const AuthForm = () => {
               <div className="auth-label-row">
                 <label className="auth-label">Password</label>
                 {isLogin && (
-                  <button type="button" className="auth-forgot">
-                    Forgot password?
-                  </button>
+                 <button
+  type="button"
+  className="auth-forgot"
+  onClick={() => navigate("/forgot-password")}
+>
+  Forgot password?
+</button>
                 )}
               </div>
               <div className="auth-input-wrap">

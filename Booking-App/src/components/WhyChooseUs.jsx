@@ -1,5 +1,6 @@
 // WhyChooseUs.jsx
 import "./WhyChooseUs.css";
+import React from "react";
 
 const FEATURES = [
   {
@@ -103,20 +104,20 @@ const WhyChooseUs = () => (
 
     {/* ── TRUST STRIP ── */}
     <div className="wcu-trust">
-      {[
-        { num: "2M+",  lbl: "Happy guests" },
-        { num: "100+", lbl: "Rooms" },
-        { num: "50+",  lbl: "Cities" },
-        { num: "4.8★", lbl: "Avg rating" },
-      ].map((item, i, arr) => (
-        <>
-          <div key={item.lbl} className="wcu-trust__item">
-            <span className="wcu-trust__num">{item.num}</span>
-            <span className="wcu-trust__lbl">{item.lbl}</span>
-          </div>
-          {i < arr.length - 1 && <div className="wcu-trust__div" />}
-        </>
-      ))}
+   {[
+  { num: "2M+",  lbl: "Happy guests" },
+  { num: "100+", lbl: "Rooms" },
+  { num: "50+",  lbl: "Cities" },
+  { num: "4.8★", lbl: "Avg rating" },
+].map((item, i, arr) => (
+  <React.Fragment key={item.lbl}>
+    <div className="wcu-trust__item">
+      <span className="wcu-trust__num">{item.num}</span>
+      <span className="wcu-trust__lbl">{item.lbl}</span>
+    </div>
+    {i < arr.length - 1 && <div className="wcu-trust__div" />}
+  </React.Fragment>
+))}
     </div>
 
   </section>

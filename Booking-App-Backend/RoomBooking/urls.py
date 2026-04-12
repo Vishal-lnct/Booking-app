@@ -3,6 +3,7 @@ from RoomBooking import views
 from rest_framework.urlpatterns import format_suffix_patterns
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import forgot_password, reset_password
 
 urlpatterns = [
     path('',                         views.api_root,                name='api-root'),
@@ -23,6 +24,10 @@ urlpatterns = [
 
      path('admin/rooms/<int:pk>/toggle/',    views.ToggleRoomAvailability.as_view(), name='toggle-room'),
     path('admin/bookings/<int:pk>/cancel/', views.AdminCancelBooking.as_view(),     name='admin-cancel-booking'),
+
+
+    path('forgot-password/', forgot_password),
+    path('reset-password/', reset_password),
 
 ]
 

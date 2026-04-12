@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import ResetPassword from "./pages/ResetPassword.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
 
 import AllRooms        from "./components/AllRooms.jsx";
 import AuthForm        from "./components/AuthForm.jsx";
@@ -18,23 +20,33 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
-    children: [
-      { path: "/",            element: <Home /> },
-      { path: "/rooms",       element: <AllRooms /> },
-      { path: "/rooms/:id",   element: <RoomDetails /> },
-      {
-        path: "/auth",
-        element: <GuestRoute><AuthForm /></GuestRoute>,
-      },
-      {
-        path: "/my-bookings",
-        element: <ProtectedRoute><MyBookings /></ProtectedRoute>,
-      },
-      {
-        path: "/admin",
-        element: <ProtectedRoute><AdminDashboard /></ProtectedRoute>, // ✅ capital D
-      },
-    ],
+children: [
+  { path: "/",            element: <Home /> },
+  { path: "/rooms",       element: <AllRooms /> },
+  { path: "/rooms/:id",   element: <RoomDetails /> },
+
+  {
+    path: "/reset/:uid/:token",
+    element: <ResetPassword />,
+  },
+  {
+  path: "/forgot-password",
+  element: <ForgotPassword />,
+},
+
+  {
+    path: "/auth",
+    element: <GuestRoute><AuthForm /></GuestRoute>,
+  },
+  {
+    path: "/my-bookings",
+    element: <ProtectedRoute><MyBookings /></ProtectedRoute>,
+  },
+  {
+    path: "/admin",
+    element: <ProtectedRoute><AdminDashboard /></ProtectedRoute>,
+  },
+],
   },
 ]);
 
