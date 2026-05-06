@@ -498,7 +498,7 @@
   font-family: 'DM Sans', sans-serif;
   font-size: 14px;
   font-weight: 700;
-  padding: 12px 28px;
+  padding: px 28px;
   border-radius: 8px;
   cursor: pointer;
   margin-top: 4px;
@@ -541,3 +541,4 @@
   .ar-stat  { padding: 0 8px; }
   .ar-hero__tags { gap: 8px; }
 }
+

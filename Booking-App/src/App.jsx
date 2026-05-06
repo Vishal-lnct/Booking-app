@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import { Outlet } from "react-router-dom";
 import { UserContext } from "./components/UserContext";
+import Chatbot from "./components/Chatbot";
 
 function App() {
   // ✅ No useEffect needed — UserContext already reads localStorage on init
@@ -34,6 +35,8 @@ function App() {
     <>
       <Navbar />
       <Outlet />
+        {/* ✅ ADD CHATBOT HERE */}
+      <Chatbot />
     </>
   );
 }

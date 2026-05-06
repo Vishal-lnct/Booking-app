@@ -28,11 +28,11 @@ INSTALLED_APPS = [
 
 # ================== MIDDLEWARE ==================
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",  # must be at top
+    "corsheaders.middleware.CorsMiddleware",  # MUST be first
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',  # optional disable for testing
+    # 'django.middleware.csrf.CsrfViewMiddleware',  # optional for dev
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -90,34 +90,19 @@ REST_FRAMEWORK = {
 }
 
 
-# ================== CORS ==================
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174",
-]
-CORS_ALLOW_CREDENTIALS = True
-
-CORS_ALLOW_HEADERS = [
-    "accept",
-    "authorization",
-    "content-type",
-    "origin",
-    "x-csrftoken",
-    "x-requested-with",
-]
+# ================== CORS (FINAL FIX) ==================
+CORS_ALLOW_ALL_ORIGINS = True   # ✅ no more CORS errors
 
 
 # ================== STATIC & MEDIA ==================
 STATIC_URL = 'static/'
-MEDIA_URL  = '/media/'
+
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # ================== DEFAULT FIELD ==================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 
 # ================== EMAIL CONFIG ==================

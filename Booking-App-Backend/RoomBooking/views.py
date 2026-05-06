@@ -5,9 +5,14 @@ from rest_framework.reverse import reverse
 from rest_framework import generics, permissions, status
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
+import json
+# from .models import Room
+# from .ai_service import extract_filters, generate_chat_reply
 
-from django.contrib.auth import get_user_model
-User = get_user_model()
+# from .ai_service import generate_response
+
+# from django.contrib.auth import get_user_model
+# User = get_user_model()
 
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
@@ -26,6 +31,15 @@ from .serializers import (
     UserSerializer, BookingSerializer
 )
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
+
+
+from .ai_service import (
+    detect_intent,
+    extract_filters,
+    generate_normal_reply,
+    generate_chat_reply
+)
+
 
 
 @api_view(['GET'])
@@ -345,3 +359,150 @@ def reset_password(request):
 
 
 
+@api_view(['POST'])
+def ai_search(request):
+    query = request.data.get("query", "")
+
+    try:
+        filters = json.loads(extract_filters(query))
+    except:
+        filters = {}
+
+    return Response({"filters": filters})
+
+
+
+
+
+
+@api_view(["POST"])
+def chat(request):
+
+    try:
+
+        user_msg = request.data.get("message", "").lower().strip()
+
+        print("USER MESSAGE:", user_msg)
+
+        # ================== DETECT INTENT ==================
+        intent = detect_intent(user_msg)
+
+        print("INTENT:", intent)
+
+        # ================== NORMAL CHAT ==================
+        if intent in ["greeting", "general_chat"]:
+
+            reply = generate_normal_reply(user_msg)
+
+            return Response({
+                "rooms": [],
+                "reply": reply
+            })
+
+        # ================== HOTEL SEARCH ==================
+        elif intent in ["hotel_search", "recommendation"]:
+
+            # 🔥 extract filters safely
+            try:
+
+                filters = json.loads(
+                    extract_filters(user_msg)
+                )
+
+                print("FILTERS:", filters)
+
+            except Exception as e:
+
+                print("FILTER ERROR:", e)
+
+                filters = {}
+
+            # ================== DATABASE QUERY ==================
+            qs = Room.objects.filter(isAvailable=True)
+
+            # city
+            if filters.get("city"):
+                qs = qs.filter(
+                    city__icontains=filters["city"]
+                )
+
+            # price
+            if filters.get("max_price"):
+
+                try:
+                    qs = qs.filter(
+                        pricePerNight__lte=filters["max_price"]
+                    )
+                except:
+                    pass
+
+            # wifi
+            if filters.get("wifi"):
+                qs = qs.filter(hasWifi=True)
+
+            # ac
+            if filters.get("ac"):
+                qs = qs.filter(hasAC=True)
+
+            # parking
+            if filters.get("parking"):
+                qs = qs.filter(hasParking=True)
+
+            # ================== SORTING ==================
+            if any(word in user_msg for word in [
+                "cheap",
+                "cheapest",
+                "affordable",
+                "budget"
+            ]):
+                qs = qs.order_by("pricePerNight")
+
+            if any(word in user_msg for word in [
+                "best",
+                "luxury",
+                "premium"
+            ]):
+                qs = qs.order_by("-rating")
+
+            # ================== FETCH RESULTS ==================
+            rooms = list(
+                qs.values(
+                    "id",
+                    "name",
+                    "city",
+                    "pricePerNight",
+                    "rating"
+                )
+            )[:3]
+
+            # rename price field
+            for room in rooms:
+                room["price"] = room.pop("pricePerNight")
+
+            print("ROOMS:", rooms)
+
+            # ================== AI NATURAL RESPONSE ==================
+            reply = generate_chat_reply(
+                user_msg,
+                rooms
+            )
+
+            return Response({
+                "rooms": rooms,
+                "reply": reply
+            })
+
+        # ================== FALLBACK ==================
+        return Response({
+            "rooms": [],
+            "reply": "I couldn't understand your request."
+        })
+
+    except Exception as e:
+
+        print("MAIN CHAT ERROR:", e)
+
+        return Response({
+            "rooms": [],
+            "reply": "Something went wrong."
+        }, status=500)

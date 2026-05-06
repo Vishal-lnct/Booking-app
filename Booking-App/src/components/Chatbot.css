@@ -1,0 +1,135 @@
+.chatbot {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+}
+
+/* 🔘 Floating Button */
+.chat-toggle {
+  background: linear-gradient(135deg, #e60023, #ff4d6d);
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease;
+}
+
+.chat-toggle:hover {
+  transform: scale(1.1);
+}
+
+/* 💬 Chat Window */
+.chat-window {
+  width: 320px;
+  height: 450px;
+  background: #ffffff;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* 🎬 Smooth open animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chat-header {
+  background: linear-gradient(135deg, #e60023, #ff4d6d);
+  color: white;
+  padding: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* 📜 Chat Body */
+.chat-body {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  background: #f9f9f9;
+}
+
+/* 💬 Messages */
+.msg {
+  padding: 10px 12px;
+  margin: 6px 0;
+  border-radius: 12px;
+  max-width: 75%;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* 👤 User message */
+.msg.user {
+  background: #e60023;
+  color: white;
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+
+/* 🤖 Bot message */
+.msg.bot {
+  background: #ffffff;
+  border: 1px solid #eee;
+  color: #333;
+  border-bottom-left-radius: 4px;
+}
+
+/* ⌨️ Input area */
+.chat-input {
+  display: flex;
+  border-top: 1px solid #eee;
+  background: #fff;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+
+/* 🚀 Send Button */
+.chat-input button {
+  background: #e60023;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.chat-input button:hover {
+  background: #cc001f;
+}
+
+.chat-input button:disabled {
+  background: #999;
+  cursor: not-allowed;
+}
+
+/* 📱 Responsive (mobile) */
+@media (max-width: 480px) {
+  .chat-window {
+    width: 90vw;
+    height: 70vh;
+    right: 5%;
+    bottom: 80px;
+  }
+}
