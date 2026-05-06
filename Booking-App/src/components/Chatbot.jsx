@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { sendMessage } from "../api/chat";
-import RoomCard from "./RoomCard";
+import ChatRoomCard from "./ChatRoomCard";
 import "./Chatbot.css";
 
 function Chatbot() {
@@ -68,41 +68,17 @@ function Chatbot() {
 
       console.log("FULL API RESPONSE:", res);
 
+      // ================== COMBINED BOT RESPONSE ==================
+      const botMessage = {
+        text: res.reply || "",
+        rooms: res.rooms || [],
+        sender: "bot",
+      };
 
-
-      // ================== BOT TEXT RESPONSE ==================
-      if (res.reply) {
-
-        const botReply = {
-          text: res.reply,
-          sender: "bot",
-        };
-
-        setMessages((prev) => [
-          ...prev,
-          botReply,
-        ]);
-      }
-
-
-
-      // ================== ROOM RESULTS ==================
-      if (
-        res.rooms &&
-        Array.isArray(res.rooms) &&
-        res.rooms.length > 0
-      ) {
-
-        const roomMessage = {
-          rooms: res.rooms,
-          sender: "bot",
-        };
-
-        setMessages((prev) => [
-          ...prev,
-          roomMessage,
-        ]);
-      }
+      setMessages((prev) => [
+        ...prev,
+        botMessage,
+      ]);
 
     } catch (error) {
 
@@ -137,6 +113,7 @@ function Chatbot() {
 
   // ================== RENDER ==================
   return (
+    
 
     <div className="chatbot">
 
@@ -182,21 +159,27 @@ function Chatbot() {
 
 
                 {/* ================== ROOM CARDS ================== */}
-                {msg.rooms && (
+                {msg.rooms &&
+                  Array.isArray(msg.rooms) &&
+                  msg.rooms.length > 0 && (
 
-                  <div className="room-results">
+                    <div className="room-results">
 
-                    {msg.rooms.map((room, idx) => (
+        {msg.rooms.map((room, idx) => {
 
-                      <RoomCard
-                        key={idx}
-                        room={room}
-                      />
+  console.log("ROOM DATA:", room);
 
-                    ))}
+  return (
+    <ChatRoomCard
+      key={idx}
+      room={room}
+    />
+  );
 
-                  </div>
-                )}
+})}
+
+                    </div>
+                  )}
 
               </div>
             ))}
@@ -252,6 +235,7 @@ function Chatbot() {
       )}
 
     </div>
+    
   );
 }
 

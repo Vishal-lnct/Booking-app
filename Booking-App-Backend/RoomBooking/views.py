@@ -374,7 +374,6 @@ def ai_search(request):
 
 
 
-
 @api_view(["POST"])
 def chat(request):
 
@@ -402,7 +401,7 @@ def chat(request):
         # ================== HOTEL SEARCH ==================
         elif intent in ["hotel_search", "recommendation"]:
 
-            # 🔥 extract filters safely
+            # ================== FILTER EXTRACTION ==================
             try:
 
                 filters = json.loads(
@@ -464,24 +463,23 @@ def chat(request):
             ]):
                 qs = qs.order_by("-rating")
 
-            # ================== FETCH RESULTS ==================
-            rooms = list(
-                qs.values(
-                    "id",
-                    "name",
-                    "city",
-                    "pricePerNight",
-                    "rating"
-                )
-            )[:3]
+            # ================== NO RESULTS ==================
+            if not qs.exists():
 
-            # rename price field
-            for room in rooms:
-                room["price"] = room.pop("pricePerNight")
+                return Response({
+                    "rooms": [],
+                    "reply": "Sorry, I couldn't find matching rooms."
+                })
+
+            # ================== FETCH RESULTS ==================
+            rooms = RoomSerializer(
+                qs[:3],
+                many=True
+            ).data
 
             print("ROOMS:", rooms)
 
-            # ================== AI NATURAL RESPONSE ==================
+            # ================== AI RESPONSE ==================
             reply = generate_chat_reply(
                 user_msg,
                 rooms

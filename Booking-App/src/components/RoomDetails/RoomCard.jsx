@@ -12,7 +12,19 @@ const RoomCard = ({ room }) => {
 
   const isAdmin = user?.is_staff || user?.is_superuser; // ✅
 
-  const goToRoom = () => navigate(`/rooms/${room.id}`);
+  // const goToRoom = () => navigate(`/rooms/${room.id}`);
+
+  const goToRoom = () => {
+
+  console.log("ROOM:", room);
+
+  if (!room?.id) {
+    alert("Room ID missing");
+    return;
+  }
+
+  navigate(`/rooms/${room.id}`);
+};
 
   const imageList =
     room?.images && room.images.length > 0
@@ -30,6 +42,9 @@ const RoomCard = ({ room }) => {
     room.hasTV        && { icon: "📺",  label: "TV"         },
     room.hasPool      && { icon: "🏊",  label: "Pool"       },
   ].filter(Boolean);
+
+
+  
 
   return (
     <div className="room-card">
@@ -116,6 +131,10 @@ const RoomCard = ({ room }) => {
         </div>
       </div>
     </div>
+
+
+
+
   );
 };
 

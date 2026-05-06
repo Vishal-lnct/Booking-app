@@ -500,3 +500,11 @@
   padding: 1rem;
   color: #666;
 }
+
+
+
+.room-card__btn {
+  position: relative;
+  z-index: 9999;
+  cursor: pointer;
+}
