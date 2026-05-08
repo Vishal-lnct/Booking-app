@@ -1,4 +1,3 @@
-// Hero.jsx
 import { useNavigate } from "react-router-dom";
 import "./Hero.css";
 
@@ -7,79 +6,68 @@ const Hero = () => {
 
   return (
     <section className="hero">
-
-      {/* Animated background overlay */}
-      <div className="hero__overlay" />
-
-      <div className="hero__content">
-
-        {/* Badge */}
-        <div className="hero__badge">
-          <span className="hero__badge-dot" />
-          India's Most Trusted Hotel Booking
-        </div>
-
-        {/* Headline */}
-        <h1 className="hero__title">
-          Find Your<br />
-          <span className="hero__title-accent">Perfect Stay</span>
-        </h1>
-
-        {/* Subtitle */}
-        <p className="hero__subtitle">
-          Discover handpicked hotels across 500+ cities —
-          best prices, free cancellation, instant confirmation.
-        </p>
-
-        {/* CTA Buttons */}
-        <div className="hero__actions">
-          <button
-            className="hero__btn hero__btn--primary"
-            onClick={() => navigate("/rooms")}
-          >
-            Explore Rooms
-          </button>
-        <button
-  className="hero__btn hero__btn--secondary"
-  onClick={() => navigate("/rooms?maxPrice=3000")}
->
-  View Deals →
-</button>
-        </div>
-
-        {/* Trust badges */}
-        <div className="hero__trust">
-          <div className="hero__trust-item"><span>✅</span> Free Cancellation</div>
-          <div className="hero__trust-item"><span>💳</span> Pay at Hotel</div>
-          <div className="hero__trust-item"><span>🔒</span> Secure Booking</div>
-          <div className="hero__trust-item"><span>📞</span> 24/7 Support</div>
-        </div>
-
+      {/* Visual Depth Elements */}
+      <div className="hero__background">
+        <div className="hero__blob hero__blob--1" />
+        <div className="hero__blob hero__blob--2" />
+        <div className="hero__overlay" />
       </div>
 
-      {/* Stats strip */}
-      <div className="hero__stats">
-        <div className="hero__stat">
-          <div className="hero__stat-num">100+</div>
-          <div className="hero__stat-lbl">Rooms</div>
+      <div className="hero__container">
+        <div className="hero__content">
+          <div className="hero__badge">
+            <span className="hero__badge-dot" />
+            <span className="hero__badge-text">India's Most Trusted Hotel Booking</span>
+          </div>
+
+          <h1 className="hero__title">
+            Find Your <br />
+            <span className="hero__title-accent">Perfect Stay</span>
+          </h1>
+
+          <p className="hero__subtitle">
+  Your next memory is just a few clicks away. Explore a curated collection 
+  of stays across India, designed to fit your <strong>vibe and your budget</strong> 
+  perfectly.
+</p>
+
+          <div className="hero__actions">
+            <button
+              className="hero__btn hero__btn--primary"
+              onClick={() => navigate("/rooms")}
+            >
+              Explore Rooms
+            </button>
+            <button
+              className="hero__btn hero__btn--secondary"
+              onClick={() => navigate("/rooms?maxPrice=3000")}
+            >
+              View Deals 
+              <span className="hero__btn-icon">→</span>
+            </button>
+          </div>
         </div>
-        <div className="hero__stat-div" />
-        <div className="hero__stat">
-          <div className="hero__stat-num">50+</div>
-          <div className="hero__stat-lbl">Cities</div>
-        </div>
-        <div className="hero__stat-div" />
-        <div className="hero__stat">
-          <div className="hero__stat-num">2M+</div>
-          <div className="hero__stat-lbl">Happy guests</div>
-        </div>
-        <div className="hero__stat-div" />
-        <div className="hero__stat">
-          <div className="hero__stat-num">4.8 ★</div>
-          <div className="hero__stat-lbl">Avg rating</div>
+
+        {/* Stats Strip - Integrated with a "Glassmorphism" look */}
+        <div className="hero__stats-card">
+          <div className="hero__stat">
+            <span className="hero__stat-num">100+</span>
+            <span className="hero__stat-lbl">Premium Rooms</span>
+          </div>
+          <div className="hero__stat">
+            <span className="hero__stat-num">50+</span>
+            <span className="hero__stat-lbl">Active Cities</span>
+          </div>
+          <div className="hero__stat">
+            <span className="hero__stat-num">2M+</span>
+            <span className="hero__stat-lbl">Happy Guests</span>
+          </div>
+          <div className="hero__stat">
+            <span className="hero__stat-num">4.8★</span>
+            <span className="hero__stat-lbl">User Rating</span>
+          </div>
         </div>
       </div>
-
     </section>
   );
 };
