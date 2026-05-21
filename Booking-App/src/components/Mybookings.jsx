@@ -112,10 +112,10 @@ const MyBookings = () => {
     : bookings.filter(b => b.status === activeTab);
 
   const statusLabel = (status) => {
-    if (status === "upcoming")  return "✈️ Upcoming";
-    if (status === "cancelled") return "❌ Cancelled";
-    return "✅ Completed";
-  };
+  if (status === "upcoming") return "Upcoming";
+  if (status === "cancelled") return "Cancelled";
+  return "Completed";
+};
 
   return (
     <div className="mb-page">
@@ -172,10 +172,10 @@ const MyBookings = () => {
               className={`mb-tab ${activeTab === tab ? "mb-tab--active" : ""}`}
               onClick={() => setActiveTab(tab)}
             >
-              {tab === "all"       ? "All Bookings"  :
-               tab === "upcoming"  ? "✈️ Upcoming"   :
-               tab === "cancelled" ? "❌ Cancelled"  :
-                                     "✅ Completed"}
+              {tab === "all"       ? "All Bookings" :
+ tab === "upcoming"  ? "Upcoming" :
+ tab === "cancelled" ? "Cancelled" :
+                       "Completed"}
               {tab !== "all" && (
                 <span className="mb-tab__count">
                   {bookings.filter(b => b.status === tab).length}
@@ -256,11 +256,11 @@ const MyBookings = () => {
                   </div>
 
                   <div className="mb-card__meta">
-                    <span>🌙 {booking.nights} night{booking.nights > 1 ? "s" : ""}</span>
+                   <span>{booking.nights} night{booking.nights > 1 ? "s" : ""}</span>
                     {booking.totalPrice && (
-                      <span>💰 ₹{Number(booking.totalPrice).toLocaleString("en-IN")}</span>
+                    <span>₹{Number(booking.totalPrice).toLocaleString("en-IN")}</span>
                     )}
-                    <span>🔖 Booking #{booking.id}</span>
+<span>Booking #{booking.id}</span>
                   </div>
                 </div>
 

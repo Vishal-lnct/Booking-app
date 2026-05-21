@@ -5,6 +5,8 @@ from rest_framework.reverse import reverse
 from rest_framework import generics, permissions, status
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
 import json
 # from .models import Room
 # from .ai_service import extract_filters, generate_chat_reply
@@ -104,27 +106,99 @@ class OccupiedDatesDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class BookingList(generics.ListCreateAPIView):
-    serializer_class   = BookingSerializer
+
+    serializer_class = BookingSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+
         user = self.request.user
+
         if user.is_staff or user.is_superuser:
             return Booking.objects.all()
+
         return Booking.objects.filter(user=user)
 
     def perform_create(self, serializer):
+
         booking = serializer.save(user=self.request.user)
 
+        # ================= OCCUPIED DATES =================
         current = booking.check_in
+
         while current < booking.check_out:
+
             OccupiedDate.objects.get_or_create(
                 room=booking.room,
                 date=current,
                 defaults={'user': self.request.user}
             )
+
             current += datetime.timedelta(days=1)
 
+        # ================= EMAIL =================
+        subject = "StayEase Booking Confirmation"
+
+        total_days = (
+            booking.check_out - booking.check_in
+        ).days
+
+        total_price = (
+            booking.room.pricePerNight * total_days
+        )
+
+        html_content = f"""
+        <div style="font-family: Arial; padding:20px;">
+
+            <h2 style="color:green;">
+                Booking Confirmed ✅
+            </h2>
+
+            <p>Hello <b>{booking.user.username}</b>,</p>
+
+            <p>Your hotel booking has been confirmed successfully.</p>
+
+            <hr>
+
+            <h3>Booking Details</h3>
+
+            <p><b>Hotel:</b> {booking.room.name}</p>
+
+            <p><b>City:</b> {booking.room.city}</p>
+
+            <p><b>Check-In:</b> {booking.check_in}</p>
+
+            <p><b>Check-Out:</b> {booking.check_out}</p>
+
+            <p><b>Total Days:</b> {total_days}</p>
+
+            <hr>
+
+            <h2>Total Price: ₹{total_price}</h2>
+
+            <br>
+
+            <p>
+                Thank you for choosing
+                <b>StayEase ❤️</b>
+            </p>
+
+        </div>
+        """
+
+        email = EmailMultiAlternatives(
+            subject,
+            "",
+            settings.EMAIL_HOST_USER,
+            [booking.user.email]
+        )
+
+        email.attach_alternative(
+            html_content,
+            "text/html"
+        )
+
+        email.send()
 
 class BookingDetail(generics.RetrieveDestroyAPIView):
     serializer_class   = BookingSerializer

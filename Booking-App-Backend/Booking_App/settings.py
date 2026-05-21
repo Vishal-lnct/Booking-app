@@ -1,6 +1,12 @@
 from pathlib import Path
+from dotenv import load_dotenv
+import os
 
+# ================== BASE ==================
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# ================== LOAD ENV ==================
+load_dotenv()
 
 # ================== BASIC ==================
 SECRET_KEY = 'django-insecure-fca+(383w*r4(u+nb$=uclv&cbmp6jdu%=dubygp@84tk-!=rf'
@@ -22,17 +28,21 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
+
     'RoomBooking',
 ]
 
 
 # ================== MIDDLEWARE ==================
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",  # MUST be first
+    "corsheaders.middleware.CorsMiddleware",
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',  # optional for dev
+
+    # 'django.middleware.csrf.CsrfViewMiddleware',
+
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -43,12 +53,16 @@ MIDDLEWARE = [
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+
         'DIRS': [],
+
         'APP_DIRS': True,
+
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -59,6 +73,7 @@ TEMPLATES = [
 
 # ================== URL CONFIG ==================
 ROOT_URLCONF = 'Booking_App.urls'
+
 WSGI_APPLICATION = 'Booking_App.wsgi.application'
 
 
@@ -66,9 +81,11 @@ WSGI_APPLICATION = 'Booking_App.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
+
         'NAME': 'booking_db',
         'USER': 'postgres',
         'PASSWORD': 'Vishal@9117',
+
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -88,20 +105,24 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
+
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
 }
 
 
-# ================== CORS (FINAL FIX) ==================
-CORS_ALLOW_ALL_ORIGINS = True   # ✅ no more CORS errors
+# ================== CORS ==================
+CORS_ALLOW_ALL_ORIGINS = True
 
 
-# ================== STATIC & MEDIA ==================
+# ================== STATIC ==================
 STATIC_URL = 'static/'
 
+
+# ================== MEDIA ==================
 MEDIA_URL = '/media/'
+
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
@@ -113,10 +134,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 EMAIL_HOST = 'smtp.gmail.com'
+
 EMAIL_PORT = 587
+
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = 'vishalsarai37@gmail.com'
-EMAIL_HOST_PASSWORD = 'fuovdoillmqoeghn'
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

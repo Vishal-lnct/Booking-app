@@ -9,7 +9,7 @@
 
 /* ── HERO ───────────────────────────────────────────────────── */
 .mb-hero {
-  background: linear-gradient(135deg, #0f0f0f 0%, #2a0810 55%, #0f0f0f 100%);
+ background: #1f1f1f;
   padding: 48px 48px 56px;
   position: relative;
   overflow: hidden;
