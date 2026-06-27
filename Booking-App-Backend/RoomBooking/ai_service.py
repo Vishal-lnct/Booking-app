@@ -52,13 +52,29 @@ def detect_intent(user_msg):
 
 
 # ================== FILTER EXTRACTION ==================
-def extract_filters(user_msg):
+def extract_filters(user_msg, available_cities=None):
+
+    city_context = ""
+
+    if available_cities:
+
+        city_context = f"""
+    Known available cities in database:
+    {json.dumps(list(available_cities), ensure_ascii=False)}
+
+    City extraction rule:
+    - If the query asks for rooms/hotels in a city, set "city" to the closest matching value from known available cities.
+    - Do not leave city empty when the user clearly mentioned one of the known cities.
+    - Do not invent a city that is not present in known available cities.
+    """
 
     prompt = f"""
     Extract hotel filters from this query.
 
     Query:
     "{user_msg}"
+
+    {city_context}
 
     Return ONLY valid JSON.
 
@@ -159,12 +175,16 @@ def generate_chat_reply(user_msg, rooms):
     Available hotel data:
     {json.dumps(rooms, indent=2)}
 
+    Total rooms provided: {len(rooms)}
+
     Rules:
     - Use ONLY provided hotel data
-    - Do NOT invent hotels
+    - Do NOT invent hotels, rooms, cities, amenities, ratings, or prices
+    - Recommend only the rooms listed above
+    - If the user asks for more rooms than provided, clearly say only {len(rooms)} matching room(s) are available
+    - Do not mention any third option unless three rooms are present in the provided data
     - Keep response short
     - Speak naturally
-    - Recommend best matching rooms
     """
 
     try:

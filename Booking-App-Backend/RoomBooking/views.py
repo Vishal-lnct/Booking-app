@@ -26,6 +26,7 @@ from django.core.mail import send_mail
 
 from django.contrib.auth import authenticate
 import datetime
+import re
 
 from .models import User, Room, OccupiedDate, Booking
 from .serializers import (
@@ -42,6 +43,58 @@ from .ai_service import (
     generate_chat_reply
 )
 
+
+
+def get_available_room_cities():
+
+    return list(
+        Room.objects.filter(isAvailable=True)
+        .exclude(city__isnull=True)
+        .exclude(city="")
+        .values_list("city", flat=True)
+        .distinct()
+    )
+
+
+def match_city_from_message(user_msg, available_cities):
+
+    normalized_msg = user_msg.lower()
+    unique_cities = sorted(
+        set(available_cities),
+        key=lambda city: len(city),
+        reverse=True
+    )
+
+    for city in unique_cities:
+        city_lower = city.lower()
+        pattern = r"(?<![a-z])" + re.escape(city_lower) + r"(?![a-z])"
+
+        if re.search(pattern, normalized_msg):
+            return city
+
+    return ""
+
+
+def normalize_city_filter(city_filter, available_cities):
+
+    city_filter = str(city_filter or "").strip()
+
+    if not city_filter:
+        return ""
+
+    city_filter_lower = city_filter.lower()
+
+    for city in available_cities:
+        city_lower = city.lower()
+
+        if (
+            city_lower == city_filter_lower
+            or city_lower in city_filter_lower
+            or city_filter_lower in city_lower
+        ):
+            return city
+
+    return city_filter
 
 
 @api_view(['GET'])
@@ -438,7 +491,15 @@ def ai_search(request):
     query = request.data.get("query", "")
 
     try:
-        filters = json.loads(extract_filters(query))
+        available_cities = get_available_room_cities()
+        filters = json.loads(
+            extract_filters(query, available_cities=available_cities)
+        )
+        direct_city = match_city_from_message(query, available_cities)
+        filters["city"] = direct_city or normalize_city_filter(
+            filters.get("city"),
+            available_cities
+        )
     except:
         filters = {}
 
@@ -478,8 +539,22 @@ def chat(request):
             # ================== FILTER EXTRACTION ==================
             try:
 
+                available_cities = get_available_room_cities()
+
                 filters = json.loads(
-                    extract_filters(user_msg)
+                    extract_filters(
+                        user_msg,
+                        available_cities=available_cities
+                    )
+                )
+
+                direct_city = match_city_from_message(
+                    user_msg,
+                    available_cities
+                )
+                filters["city"] = direct_city or normalize_city_filter(
+                    filters.get("city"),
+                    available_cities
                 )
 
                 print("FILTERS:", filters)
