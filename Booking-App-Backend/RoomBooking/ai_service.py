@@ -4,13 +4,9 @@ import os
 import re
 import json
 
-# Load environment variables
-load_dotenv()
-
-# Get API key
 api_key = os.getenv("GROQ_API_KEY")
+model = os.getenv("GROQ_MODEL")
 
-# Create Groq client
 client = Groq(api_key=api_key)
 
 
@@ -41,7 +37,7 @@ def detect_intent(user_msg):
                     "content": prompt
                 }
             ],
-            model="llama-3.1-8b-instant"
+            model="openai/gpt-oss-20b"
         )
 
         intent = response.choices[0].message.content.strip().lower()
@@ -107,7 +103,7 @@ def extract_filters(user_msg, available_cities=None):
                     "content": prompt
                 }
             ],
-            model="llama-3.1-8b-instant"
+            model="openai/gpt-oss-20b"
         )
 
         content = response.choices[0].message.content.strip()
@@ -117,11 +113,10 @@ def extract_filters(user_msg, available_cities=None):
         content = content.replace("```", "")
 
         # extract only JSON
+       # extract only JSON
         match = re.search(r'\{.*\}', content, re.DOTALL)
-
         if match:
-            return match.group(0)
-
+          return match.group(0)
         return "{}"
 
     except Exception as e:
@@ -153,7 +148,7 @@ def generate_normal_reply(user_msg):
                     "content": prompt
                 }
             ],
-            model="llama-3.1-8b-instant"
+            model="openai/gpt-oss-20b"
         )
 
         return response.choices[0].message.content.strip()
@@ -201,7 +196,7 @@ def generate_chat_reply(user_msg, rooms):
                     "content": prompt
                 }
             ],
-            model="llama-3.1-8b-instant"
+            model="openai/gpt-oss-20b"
         )
 
         return response.choices[0].message.content.strip()
